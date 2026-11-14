@@ -12,7 +12,7 @@ Living plan, updated after every step. Physical steps are ticked only when physi
 ## M02 · Order the parts
 - status: next (Kalev)
 - why: the board and the round screen are the only things JHC does not have.
-1. Order the upgraded board (the housing is designed around it): Grobotronics, with case, €44.90, in stock (shop comparison in `docs/PARTS.md`; The Pi Hut ships to the EU only by DHL Express now, about €80 in total).
+1. Order the upgraded board (the housing is designed around it) from The Pi Hut, option "Standard + Case", £36.60 + DHL Express £30 to Finland: https://thepihut.com/products/esp32-s3-1-75-amoled-round-touch-display-dev-board-466x466
 
 ## M03 · Flash the display and wire it on the desk
 - status: waiting for parts

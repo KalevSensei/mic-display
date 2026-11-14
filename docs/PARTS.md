@@ -11,16 +11,11 @@ Owner decisions, 2026-11-14: no light sensor ("lets use only data the pc can pic
 
 ## Upgraded build (chosen: the housing in cad/ is designed around this board)
 
-Waveshare ESP32-S3-Touch-AMOLED-1.75: board and round 1.75" AMOLED screen in one, no wiring. We print our own housing, so the Waveshare case is optional (with case = SKU 31262 "-B", without = 31261). Shops checked 2026-11-14, delivered to Finland:
+Waveshare ESP32-S3-Touch-AMOLED-1.75: board and round 1.75" AMOLED screen in one, no wiring. We print our own housing, so the Waveshare case is optional (with case = SKU 31262 "-B", without = 31261).
 
-| Shop | Version | Price | Delivery to Finland | Stock |
-|------|---------|-------|---------------------|-------|
-| **Grobotronics** (Greece, EU: no customs) | with case | €44.90 incl. VAT | courier, cost shown at checkout | in stock |
-| Grobotronics | without case | €39.90 | same | back 21 Nov |
-| OpenELAB | with case | €41.53 incl. Finnish VAT + €7.95 | FedEx 3–5 days, but it is a **pre-order from China** | pre-order |
-| The Pi Hut (UK) | with case | £36.60 | **EU orders only by DHL Express, £30** (UK checkout update), ≈ €80 total | 12 left |
+**Buy at The Pi Hut** (owner, 2026-11-14: "the pi hut was actually perfect"): option "Standard + Case", £36.60, 12 in stock on 14 Nov, https://thepihut.com/products/esp32-s3-1-75-amoled-round-touch-display-dev-board-466x466 . To Finland it currently ships only by DHL Express (£30, 1–2 working days); Finnish VAT is charged at checkout, so nothing more is due on delivery (order under €150).
 
-Pick: Grobotronics, with case, in stock: https://grobotronics.com/waveshare-esp32-s3-touch-amoled-1-75-466466.html?sl=en . If its courier price at checkout is above about €30, The Pi Hut by DHL Express costs the same and arrives in 1–2 days.
+Seller bar (owner, 2026-11-14): a shop is recommended only with a physical shop, or at least 300 Trustpilot reviews and a real online presence. Grobotronics and OpenELAB (cheaper listings found 14 Nov) fail it and are not used.
 
 Why it works for this build: ESP32-S3 with native USB (the companion page talks to it over Web Serial); Waveshare's own Arduino example drives this exact screen (CO5300) with the same graphics library as our firmware; Waveshare's 3D model of the board sits in our housing with zero overlap (cad/checks/fit_check.json).
 
