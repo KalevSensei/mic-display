@@ -1,0 +1,4 @@
+cad/print/** -text
+cad/assembly/** -text
+*.3mf binary
+*.stl binary

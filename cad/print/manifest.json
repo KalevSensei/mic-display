@@ -1,0 +1,32 @@
+[
+  {
+    "part": "D01_PETG_display_shell",
+    "volume_mm3": 4931.6,
+    "petg_g": 6.3,
+    "size_mm": [
+      53.4,
+      53.4,
+      14.6
+    ]
+  },
+  {
+    "part": "D02_PETG_display_back_MI1",
+    "volume_mm3": 9438.7,
+    "petg_g": 12.0,
+    "size_mm": [
+      53.4,
+      53.4,
+      8.3
+    ]
+  },
+  {
+    "part": "A00_PETG_desk_foot_MI1",
+    "volume_mm3": 33993.3,
+    "petg_g": 43.2,
+    "size_mm": [
+      60.0,
+      72.0,
+      101.1
+    ]
+  }
+]

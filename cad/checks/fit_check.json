@@ -1,0 +1,118 @@
+{
+  "checks": [
+    {
+      "check": "board orientation",
+      "ok": true,
+      "detail": "board Z -9.93..2.77, want -9.93..2.77"
+    },
+    {
+      "check": "board vs shell",
+      "ok": true,
+      "detail": "overlap 0.0000 mm3"
+    },
+    {
+      "check": "board vs back",
+      "ok": true,
+      "detail": "overlap 0.0000 mm3"
+    },
+    {
+      "check": "shell vs back",
+      "ok": true,
+      "detail": "overlap 0.0000 mm3"
+    },
+    {
+      "check": "rail (without bump) vs display unit",
+      "ok": true,
+      "detail": "overlap 0.0000 mm3"
+    },
+    {
+      "check": "upright vs display unit",
+      "ok": true,
+      "detail": "overlap 0.0000 mm3"
+    },
+    {
+      "check": "detent: preload 0.1-0.3 when home, tongue deflection < void under it",
+      "ok": true,
+      "detail": "preload 0.15, deflection 0.55, void 1.35"
+    },
+    {
+      "check": "M2x6 into the 3.5 standoff: engages 2.5-3.3 mm, tip clear of the PCB",
+      "ok": true,
+      "detail": "engagement 2.93, tip 0.57 below the PCB"
+    },
+    {
+      "check": "header clear of the back",
+      "ok": true,
+      "detail": "0.57 mm"
+    },
+    {
+      "check": "display clears the desk foot base for a USB-C plug",
+      "ok": true,
+      "detail": "50.9 mm"
+    }
+  ],
+  "numbers": {
+    "board_bbox": [
+      -24.48,
+      24.48,
+      -24.48,
+      24.48,
+      -9.93,
+      2.77
+    ],
+    "bump_overlap_nominal_mm3": 10.894,
+    "od": 53.4,
+    "depth_total": 19.97,
+    "header_to_back_inner_face": 0.57,
+    "glass_radial_clearance": 0.22,
+    "mi1_open_w": 16.536,
+    "mi1_rail_neck_w": 16.074,
+    "mi1_rail_top_w": 19.249,
+    "mi1_rail_top_to_floor": 0.25,
+    "bump_preload_when_home": 0.15,
+    "tongue_deflection_while_sliding": 0.55,
+    "board_screw_tip_z": -4.7,
+    "board_screw_engagement": 2.93,
+    "board_screw_tip_to_pcb": 0.57,
+    "shell_screw_engagement_at_axis_min": 4.7,
+    "desk_display_lowest_point_above_base_top": 50.9,
+    "desk_foot_bbox": [
+      60.0,
+      72.0,
+      101.1
+    ]
+  },
+  "parts": [
+    {
+      "part": "D01_PETG_display_shell",
+      "volume_mm3": 4931.6,
+      "petg_g": 6.3,
+      "size_mm": [
+        53.4,
+        53.4,
+        14.6
+      ]
+    },
+    {
+      "part": "D02_PETG_display_back_MI1",
+      "volume_mm3": 9438.7,
+      "petg_g": 12.0,
+      "size_mm": [
+        53.4,
+        53.4,
+        8.3
+      ]
+    },
+    {
+      "part": "A00_PETG_desk_foot_MI1",
+      "volume_mm3": 33993.3,
+      "petg_g": 43.2,
+      "size_mm": [
+        60.0,
+        72.0,
+        101.1
+      ]
+    }
+  ],
+  "failed": []
+}
