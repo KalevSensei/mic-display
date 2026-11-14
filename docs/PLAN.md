@@ -10,9 +10,8 @@ Living plan, updated after every step. Physical steps are ticked only when physi
 3. **Demo signal** runs the dial without a mic.
 
 ## M02 · Order the parts
-- status: next (Kalev)
-- why: the board and the round screen are the only things JHC does not have.
-1. Order the upgraded board (the housing is designed around it) from The Pi Hut, option "Standard + Case", £36.60 + DHL Express £30 to Finland: https://thepihut.com/products/esp32-s3-1-75-amoled-round-touch-display-dev-board-466x466
+- status: done 2026-11-14 (ordered by Kalev): The Pi Hut order #[order no. removed], ESP32-S3 1.75" AMOLED board "Standard + Case", DHL Express (2–3 working days). Dispatch expected Mon 16 Nov, arrival about Wed 18 to Thu 19 Nov. Not yet received.
+- why: the board is the only part JHC does not have.
 
 ## M03 · Flash the display and wire it on the desk
 - status: waiting for parts
