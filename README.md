@@ -1,6 +1,6 @@
 # Mic-stand audio display
 
-A round display that clips onto a microphone stand and shows the microphone's live state: a needle dial of the level, clipping, sample rate, device, recording status and the Blue Yeti's mute light. Display only, no controls.
+A round display that clips onto a microphone stand and shows the microphone's live state from what the PC can read: a needle dial of the level, clipping, sample rate, device, recording status and a no-signal warning. Display only, no controls.
 
 Uni engineering project (LAB, Engineering Curiosity), Kalev, started 2026-11-14. Built and tested on Kalev's own PC first; mounted on a classmate's custom Yeti stand and installed on his PC last.
 
@@ -13,10 +13,9 @@ Uni engineering project (LAB, Engineering Curiosity), Kalev, started 2026-11-14.
 
 ## How it works
 - **Companion page** (`companion/index.html`, runs in Chrome or Edge on Windows or Mac, nothing to install): listens to the microphone, measures level, peak and clipping, reads the sample rate and device name, optionally reads OBS recording status, draws the exact dial the display will show, and streams it to the display over the USB cable (Web Serial).
-- **Display** (`firmware/mic_display/`): Seeed XIAO ESP32C3 + 1.28" round GC9A01 LCD. Draws the dial from what the page sends and shows "waiting for PC" when nothing arrives. USB powers everything.
-- **Mute sensor**: a light sensor (LDR) in a small printed cup over the Yeti's red LED. The Yeti's LED is steady when live and blinks when muted; the board tells the two apart and sends the state back to the page.
+- **Display** (`firmware/mic_display/`): Seeed XIAO ESP32C3 + 1.28" round GC9A01 LCD. Draws the dial from what the page sends, shows NO SIGNAL after 3 s of silence (the mic's own mute) and "waiting for PC" when nothing arrives. USB powers everything. The upgraded build (1.75" AMOLED) gets the same firmware ported.
 
 ## Files
 - `docs/PLAN.md`: the build steps in order, with status.
 - `docs/PARTS.md`: what to buy (one Electrokit order) and what comes from JHC.
-- `docs/WIRING.md`: every wire, pin by pin.
+- `docs/WIRING.md`: every wire, pin by pin (basic build; the upgraded board needs none).

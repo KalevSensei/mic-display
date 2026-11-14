@@ -11,27 +11,25 @@ Living plan, updated after every step. Physical steps are ticked only when physi
 
 ## M02 · Order the parts
 - status: next (Kalev)
-- why: the board, the round display and the light sensor are the only things JHC does not have.
-1. One Electrokit order, the three items in `docs/PARTS.md`.
+- why: the board and the round screen are the only things JHC does not have.
+1. Pick the basic build (Electrokit, about €27) or the upgraded build (1.75" AMOLED from The Pi Hut, about €42) in `docs/PARTS.md`, and order it.
 
 ## M03 · Flash the display and wire it on the desk
 - status: waiting for parts
 - why: proves the display draws the same dial as the page, fed over the USB cable.
 1. Arduino IDE: install the ESP32 boards package (Espressif) and the library "GFX Library for Arduino" (moononournation).
 2. Open `firmware/mic_display/mic_display.ino`, board "XIAO_ESP32C3", USB CDC On Boot: Enabled, upload.
-3. Solder the display wires from `docs/WIRING.md`; the screen shows "waiting for PC".
+3. Basic build: solder the display wires from `docs/WIRING.md`. Upgraded build: nothing to wire (the firmware is ported to the AMOLED board first). The screen shows "waiting for PC".
 4. In the companion page click **Connect display**, pick the XIAO's port: the display now mirrors the dial.
 
-## M04 · Mute-light sensor
-- status: waiting for parts
-- why: the Yeti does not tell the PC when its own mute button is pressed; its red LED does (steady = live, blinking = muted).
-1. Solder the LDR divider (`docs/WIRING.md`). Test against any red LED: steady light reads "live", blinking reads "muted".
-2. Print the sensor cup, fit it over the Yeti's LED (one 5-minute check on the classmate's mic).
+## M04 · Mute-light sensor (dropped)
+- status: dropped 2026-11-14 (owner: "i think we can skip the light sensor, letys use only data the pc can pick up")
+- why: the display shows only what the PC can read. The Yeti's own mute button still shows on the dial: the level falls to silence, and after 3 s the display says NO SIGNAL.
 
 ## M05 · Housing: one display unit, interchangeable stand adapters
 - status: later
 - why: the display unit is the same on every stand; only a small, cheap adapter changes per stand (owner, 2026-11-14: "that second part can be interchnaged … if u have 3 diffefent mic stands … the first piece is always the same, has all the stuff in it").
-- names: **display unit** (the housing with the screen, the board and the USB port; one design) and **stand adapter** (one per stand model). They join through one fixed **mounting interface**: a quick-release dovetail slide with a snap catch, so an adapter slides on and clicks off without tools. The light-sensor cup is a third small part (it follows the mic, not the stand) and plugs into the display unit with a short cable.
+- names: **display unit** (the housing with the screen, the board and the USB port; one design) and **stand adapter** (one per stand model). They join through one fixed **mounting interface**: a quick-release dovetail slide with a snap catch, so an adapter slides on and clicks off without tools.
 1. Display unit: front bezel holding the round screen, rear shell holding the XIAO with its USB-C port reachable at the bottom, the female dovetail on the back. 3D-printed in PETG on a JHC Prusa (book as in the monitor-stand plan S07).
 2. Interface: the dovetail and snap dimensions are fixed once and written down here, so every future adapter fits every display unit.
 3. Stand adapter #1: the male dovetail on one side, a clamp shaped for the classmate's stand on the other, designed after measuring it (tube or arm diameter, where the display should sit).

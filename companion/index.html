@@ -74,7 +74,7 @@
         <dt>Peak</dt><dd id="vPeak">–</dd>
         <dt>Sample rate</dt><dd id="vRate">–</dd>
         <dt>Device</dt><dd id="vDev">–</dd>
-        <dt>Mute light</dt><dd id="vMute">no display connected</dd>
+        <dt>Signal</dt><dd id="vSig">–</dd>
         <dt>Recording</dt><dd id="vRec">OBS not connected</dd>
       </dl>
     </div>
@@ -134,15 +134,17 @@ function drawDial(ctx, s) {
   ctx.beginPath(); ctx.moveTo(c - Math.cos(a) * 10, c - Math.sin(a) * 10); ctx.lineTo(c + Math.cos(a) * 92, c + Math.sin(a) * 92); ctx.stroke();
   ctx.fillStyle = COL.needle; ctx.beginPath(); ctx.arc(c, c, 6, 0, Math.PI * 2); ctx.fill();
   // readout
-  ctx.fillStyle = COL.text; ctx.font = '600 26px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
-  ctx.fillText(s.level <= MIN_DB ? '–∞' : Math.round(s.level).toString(), c, c + 50);
-  ctx.fillStyle = COL.dim; ctx.font = '500 11px "IBM Plex Sans", sans-serif'; ctx.fillText('dBFS', c, c + 64);
-  // status chip on top: MUTED beats REC beats LIVE
-  let chip = null;
-  if (s.mute === 2) chip = ['MUTED', COL.red];
-  else if (s.rec) chip = [s.rec === 2 ? '● LIVE' : '● REC', COL.red];
-  else if (s.mute === 1) chip = ['MIC ON', COL.green];
-  if (chip) { ctx.fillStyle = chip[1]; ctx.font = '600 14px "IBM Plex Sans", sans-serif'; ctx.fillText(chip[0], c, 52); }
+  // NO SIGNAL (3 s of silence, e.g. the mic's own mute button) takes the number's place
+  if (s.silent) {
+    ctx.fillStyle = COL.amber; ctx.font = '600 16px "IBM Plex Sans", sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('NO SIGNAL', c, c + 56);
+  } else {
+    ctx.fillStyle = COL.text; ctx.font = '600 26px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
+    ctx.fillText(s.level <= MIN_DB ? '–∞' : Math.round(s.level).toString(), c, c + 50);
+    ctx.fillStyle = COL.dim; ctx.font = '500 11px "IBM Plex Sans", sans-serif'; ctx.fillText('dBFS', c, c + 64);
+  }
+  // recording chip on top, between the -36 and -24 labels
+  if (s.rec) { ctx.fillStyle = COL.red; ctx.font = '600 14px "IBM Plex Sans", sans-serif'; ctx.fillText(s.rec === 2 ? '● LIVE' : '● REC', c, 44); }
   // footer: rate and device
   ctx.fillStyle = COL.dim; ctx.font = '500 11px "IBM Plex Sans", sans-serif';
   const rate = s.rate ? `${(s.rate / 1000).toFixed(s.rate % 1000 ? 1 : 0)} kHz` : '';
@@ -152,8 +154,9 @@ function drawDial(ctx, s) {
 
 // ---------- state ----------
 const $ = (id) => document.getElementById(id);
-const state = { live: false, level: MIN_DB, peak: MIN_DB, clip: false, rec: 0, mute: 0, rate: 0, name: '' };
-let peakAt = 0, clipUntil = 0, needle = MIN_DB;
+const state = { live: false, level: MIN_DB, peak: MIN_DB, clip: false, rec: 0, silent: false, rate: 0, name: '' };
+const SILENT_DB = -55;   // below this for 3 s = NO SIGNAL, same rule as the firmware
+let peakAt = 0, clipUntil = 0, needle = MIN_DB, loudAt = 0;
 let audio = null, analyser = null, buf = null, demo = false, demoT = 0;
 
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
@@ -230,8 +233,7 @@ async function readSerial() {
       const { value, done } = await reader.read(); if (done) break;
       line += value; let i;
       while ((i = line.indexOf('\n')) >= 0) {
-        const msg = line.slice(0, i).trim(); line = line.slice(i + 1);
-        const m = msg.match(/^M,(\d)/); if (m) state.mute = Number(m[1]);
+        line = line.slice(i + 1);   // the display sends nothing back; reading only detects a disconnect
       }
     }
   } catch {}
@@ -300,8 +302,10 @@ function frame(now) {
     $('vPeak').textContent = `${state.peak.toFixed(1)} dBFS${state.clip ? ' · CLIPPING' : ''}`;
     $('vRate').textContent = state.rate ? `${state.rate} Hz` : '–';
     $('vDev').textContent = state.name || '–';
-  } else state.live = false;
-  if (writer) $('vMute').textContent = ['no sensor reading', 'mic on (light steady)', 'muted (light blinking)'][state.mute] || '–';
+    if (state.level > SILENT_DB || !loudAt) loudAt = now;
+    state.silent = now - loudAt > 3000;
+    $('vSig').textContent = state.silent ? 'no signal (silent for 3 s or more)' : 'present';
+  } else { state.live = false; state.silent = false; loudAt = 0; $('vSig').textContent = '–'; }
   drawDial(ctx, state);
   sendFrame(now);
   requestAnimationFrame(frame);

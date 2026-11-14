@@ -1,6 +1,6 @@
 // Mic-stand audio display: Seeed XIAO ESP32C3 + 1.28" round GC9A01 LCD (240 x 240).
-// Draws the same dial as companion/index.html from the lines the page sends over USB, and reads the
-// Blue Yeti's mute light with an LDR (steady = mic on, blinking = muted).
+// Draws the same dial as companion/index.html from the lines the page sends over USB.
+// Shows only what the PC can read (owner, 2026-11-14: no light sensor). Display only, sends nothing back.
 //
 // Arduino IDE: board "XIAO_ESP32C3", USB CDC On Boot: Enabled.
 // Library: "GFX Library for Arduino" (moononournation, Arduino_GFX).
@@ -8,8 +8,6 @@
 //
 // Protocol, page -> display, one line per frame (20 per second):
 //   S,<level dB x10>,<peak dB x10>,<clip 0|1>,<rec 0|1|2>,<sample rate Hz>,<device name>\n
-// Protocol, display -> page, every 200 ms:
-//   M,<0 no reading | 1 mic on | 2 muted>,<raw light 0-4095>\n
 
 #include <Arduino_GFX_Library.h>
 #include <math.h>
@@ -20,7 +18,6 @@
 #define PIN_CS   D3
 #define PIN_DC   D2
 #define PIN_RST  D0
-#define PIN_LDR  D1
 
 Arduino_DataBus *bus = new Arduino_ESP32SPI(PIN_DC, PIN_CS, PIN_SCK, PIN_MOSI, GFX_NOT_DEFINED);
 Arduino_GFX *panel = new Arduino_GC9A01(bus, PIN_RST, 0 /* rotation */, true /* IPS */);
@@ -58,7 +55,8 @@ int clip = 0, rec = 0;
 long rate = 0;
 char name[24] = "";
 uint32_t lastFrame = 0;   // millis() of the last S line
-int mute = 0;              // from the light sensor
+uint32_t loudAt = 0;       // millis() when the level was last above the no-signal floor
+const float SILENT_DB = -55;  // below this for 3 s = NO SIGNAL (e.g. the Yeti's own mute button)
 
 void draw() {
   gfx->fillScreen(BG);
@@ -87,13 +85,13 @@ void draw() {
   gfx->fillCircle(C, C, 6, NEEDLE);
 
   char t[12];
-  if (level <= MIN_DB) strcpy(t, "-inf"); else snprintf(t, sizeof t, "%d", (int)lroundf(level));
-  centered(t, C + 44, 3, TEXT);
-  centered("dBFS", C + 64, 1, DIM);
-
-  if (mute == 2) centered("MUTED", 52, 2, RED);
-  else if (rec) centered(rec == 2 ? "LIVE" : "REC", 52, 2, RED);
-  else if (mute == 1) centered("MIC ON", 52, 2, GREEN);
+  if (millis() - loudAt > 3000) centered("NO SIGNAL", C + 50, 2, AMBER);   // takes the number's place, same as the page
+  else {
+    if (level <= MIN_DB) strcpy(t, "-inf"); else snprintf(t, sizeof t, "%d", (int)lroundf(level));
+    centered(t, C + 44, 3, TEXT);
+    centered("dBFS", C + 64, 1, DIM);
+  }
+  if (rec) centered(rec == 2 ? "LIVE" : "REC", 40, 2, RED);   // between the -36 and -24 labels
 
   if (rate) { snprintf(t, sizeof t, rate % 1000 ? "%.1f kHz" : "%.0f kHz", rate / 1000.0); centered(t, 196, 1, DIM); }
   centered(name, 211, 1, DIM);
@@ -112,31 +110,16 @@ void parseLine() {
   level = atoi(f[0]) / 10.0; peak = atoi(f[1]) / 10.0; clip = atoi(f[2]); rec = atoi(f[3]); rate = atol(f[4]);
   strncpy(name, f[5], sizeof name - 1); name[sizeof name - 1] = 0;
   lastFrame = millis();
-}
-
-// ---- mute light: steady bright = mic on, blinking = muted, steady dark = no reading ----
-const int ON_LEVEL = 1200;    // raw reading that counts as "LED lit"; tune once on the real Yeti (M04)
-const int MIN_SWING = 300;    // light swing that counts as blinking
-int samples[75]; int si = 0;  // 75 x 20 ms = 1.5 s window
-void readLight() {
-  samples[si] = analogRead(PIN_LDR); si = (si + 1) % 75;
-  int lo = 4095, hi = 0; long sum = 0;
-  for (int v : samples) { lo = min(lo, v); hi = max(hi, v); sum += v; }
-  int mid = (lo + hi) / 2, crossings = 0; bool above = samples[0] > mid;
-  for (int i = 1; i < 75; i++) { bool b = samples[(si + i) % 75] > mid; if (b != above) { crossings++; above = b; } }
-  if (hi - lo > MIN_SWING && crossings >= 2) mute = 2;
-  else if (sum / 75 > ON_LEVEL) mute = 1;
-  else mute = 0;
+  if (level > SILENT_DB || !loudAt) loudAt = lastFrame;   // first frame starts the 3 s clock
 }
 
 void setup() {
   Serial.begin(115200);
-  analogReadResolution(12);
   gfx->begin(40000000);
   draw();
 }
 
-uint32_t lastLight = 0, lastReport = 0, lastDraw = 0;
+uint32_t lastDraw = 0;
 void loop() {
   while (Serial.available()) {
     char ch = Serial.read();
@@ -144,7 +127,5 @@ void loop() {
     else if (ch != '\r' && len < (int)sizeof line - 1) line[len++] = ch;
   }
   uint32_t now = millis();
-  if (now - lastLight >= 20) { lastLight = now; readLight(); }
-  if (now - lastReport >= 200) { lastReport = now; Serial.printf("M,%d,%d\n", mute, samples[(si + 74) % 75]); }
   if (now - lastDraw >= 40) { lastDraw = now; draw(); }   // 25 frames a second
 }
