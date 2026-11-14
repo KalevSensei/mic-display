@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mic display</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f5f7; --surface: #ffffff; --line: #d9dde3; --text: #14171c; --muted: #5a626e;
+    --accent: #1f6feb; --accent-text: #ffffff; --good: #1a7f37; --bad: #cf222e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0d0f12; --surface: #161a20; --line: #2a3039; --text: #e8ebef; --muted: #9aa3ae;
+      --accent: #4c8dff; --accent-text: #0d0f12; --good: #3fb950; --bad: #ff6b6b; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 16px/1.5 "IBM Plex Sans", "Segoe UI", sans-serif; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 16px 48px; display: grid; grid-template-columns: 1fr; gap: 24px; }
+  @media (min-width: 860px) { .wrap { grid-template-columns: 520px 1fr; align-items: start; } }
+  h1 { font-size: 28px; line-height: 1.2; margin: 0 0 4px; font-weight: 600; text-wrap: balance; }
+  .lead { color: var(--muted); margin: 0 0 20px; }
+  .stage { background: #000; border-radius: 16px; padding: 24px; display: grid; place-items: center; }
+  canvas#dial { width: min(480px, 100%); aspect-ratio: 1; border-radius: 50%; display: block; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+  .card + .card { margin-top: 16px; }
+  .card h2 { font-size: 18px; margin: 0 0 12px; font-weight: 600; }
+  .btn { min-height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
+    color: var(--text); font: inherit; font-weight: 500; cursor: pointer; }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  .btn:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .btn[disabled] { opacity: .5; cursor: default; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  label { display: block; font-size: 14px; color: var(--muted); margin: 12px 0 4px; }
+  select, input { width: 100%; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--text); font: inherit; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; }
+  dt { color: var(--muted); font-size: 14px; }
+  dd { margin: 0; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .note { font-size: 14px; color: var(--muted); margin: 10px 0 0; }
+  .err { color: var(--bad); }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section>
+    <h1>Mic display</h1>
+    <p class="lead">The dial the stand display shows, live from this computer's microphone.</p>
+    <div class="stage"><canvas id="dial" width="240" height="240" aria-label="Microphone level dial"></canvas></div>
+  </section>
+  <section>
+    <div class="card">
+      <h2>Microphone</h2>
+      <div class="row">
+        <button class="btn btn-primary" id="start">Start microphone</button>
+        <button class="btn" id="demo">Demo signal</button>
+      </div>
+      <label for="device">Input</label>
+      <select id="device" disabled><option>Start the microphone first</option></select>
+      <p class="note" id="micNote"></p>
+    </div>
+    <div class="card">
+      <h2>Stand display</h2>
+      <div class="row"><button class="btn" id="connect">Connect display</button></div>
+      <p class="note" id="serialNote">Plug the display into USB, then connect and pick its port.</p>
+    </div>
+    <div class="card">
+      <h2>Now</h2>
+      <dl>
+        <dt>Level</dt><dd id="vLevel">–</dd>
+        <dt>Peak</dt><dd id="vPeak">–</dd>
+        <dt>Sample rate</dt><dd id="vRate">–</dd>
+        <dt>Device</dt><dd id="vDev">–</dd>
+        <dt>Mute light</dt><dd id="vMute">no display connected</dd>
+        <dt>Recording</dt><dd id="vRec">OBS not connected</dd>
+      </dl>
+    </div>
+    <div class="card">
+      <h2>OBS recording status (optional)</h2>
+      <label for="obsUrl">OBS WebSocket address</label>
+      <input id="obsUrl" value="ws://127.0.0.1:4455" autocomplete="off">
+      <label for="obsPw">Password (OBS → Tools → WebSocket Server Settings)</label>
+      <input id="obsPw" type="password" autocomplete="off">
+      <div class="row" style="margin-top:12px"><button class="btn" id="obsConnect">Connect OBS</button></div>
+      <p class="note" id="obsNote"></p>
+    </div>
+  </section>
+</main>
+<script>
+'use strict';
+// ---------- shared dial design (the firmware draws the same layout) ----------
+const MIN_DB = -60, MAX_DB = 0;            // scale of the dial
+const A0 = 150, A1 = 390;                  // arc from 150° (lower left) clockwise to 30° (lower right), degrees
+const dbToAngle = (db) => {
+  const t = (Math.max(MIN_DB, Math.min(MAX_DB, db)) - MIN_DB) / (MAX_DB - MIN_DB);
+  return (A0 + t * (A1 - A0)) * Math.PI / 180;
+};
+const COL = { bg: '#000000', track: '#1d222a', green: '#2ecc71', amber: '#f5b301', red: '#ff3b30', text: '#f2f4f7', dim: '#7d8794', needle: '#ffffff' };
+
+function drawDial(ctx, s) {
+  const c = 120;
+  ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, 240, 240);
+  if (s.clip) { ctx.strokeStyle = COL.red; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(c, c, 116, 0, Math.PI * 2); ctx.stroke(); }
+  if (!s.live) {
+    ctx.fillStyle = COL.dim; ctx.font = '500 16px "IBM Plex Sans", sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('waiting for PC', c, c + 6); return;
+  }
+  // zones
+  const zone = (from, to, col) => { ctx.strokeStyle = col; ctx.lineWidth = 10; ctx.beginPath(); ctx.arc(c, c, 100, dbToAngle(from), dbToAngle(to)); ctx.stroke(); };
+  zone(-60, -18, '#16502f'); zone(-18, -6, '#5a4300'); zone(-6, 0, '#5c1612');
+  // lit part up to the level
+  const lit = (from, to, col) => { if (s.level > from) zone(from, Math.min(to, s.level), col); };
+  lit(-60, -18, COL.green); lit(-18, -6, COL.amber); lit(-6, 0, COL.red);
+  // ticks and labels
+  ctx.fillStyle = COL.dim; ctx.strokeStyle = COL.dim; ctx.font = '500 11px "IBM Plex Sans", sans-serif'; ctx.textAlign = 'center';
+  for (const db of [-60, -48, -36, -24, -18, -12, -6, 0]) {
+    const a = dbToAngle(db);
+    ctx.lineWidth = 2; ctx.beginPath();
+    ctx.moveTo(c + Math.cos(a) * 88, c + Math.sin(a) * 88); ctx.lineTo(c + Math.cos(a) * 81, c + Math.sin(a) * 81); ctx.stroke();
+    if (db !== -18) ctx.fillText(String(db), c + Math.cos(a) * 70, c + Math.sin(a) * 70 + 4);   // -18 is a tick only (zone edge)
+  }
+  // peak marker
+  if (s.peak > MIN_DB) {
+    const a = dbToAngle(s.peak);
+    ctx.fillStyle = s.peak > -6 ? COL.red : COL.text;
+    ctx.beginPath(); ctx.arc(c + Math.cos(a) * 100, c + Math.sin(a) * 100, 4, 0, Math.PI * 2); ctx.fill();
+  }
+  // needle
+  const a = dbToAngle(s.level);
+  ctx.strokeStyle = COL.needle; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(c - Math.cos(a) * 10, c - Math.sin(a) * 10); ctx.lineTo(c + Math.cos(a) * 92, c + Math.sin(a) * 92); ctx.stroke();
+  ctx.fillStyle = COL.needle; ctx.beginPath(); ctx.arc(c, c, 6, 0, Math.PI * 2); ctx.fill();
+  // readout
+  ctx.fillStyle = COL.text; ctx.font = '600 26px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
+  ctx.fillText(s.level <= MIN_DB ? '–∞' : Math.round(s.level).toString(), c, c + 50);
+  ctx.fillStyle = COL.dim; ctx.font = '500 11px "IBM Plex Sans", sans-serif'; ctx.fillText('dBFS', c, c + 64);
+  // status chip on top: MUTED beats REC beats LIVE
+  let chip = null;
+  if (s.mute === 2) chip = ['MUTED', COL.red];
+  else if (s.rec) chip = [s.rec === 2 ? '● LIVE' : '● REC', COL.red];
+  else if (s.mute === 1) chip = ['MIC ON', COL.green];
+  if (chip) { ctx.fillStyle = chip[1]; ctx.font = '600 14px "IBM Plex Sans", sans-serif'; ctx.fillText(chip[0], c, 52); }
+  // footer: rate and device
+  ctx.fillStyle = COL.dim; ctx.font = '500 11px "IBM Plex Sans", sans-serif';
+  const rate = s.rate ? `${(s.rate / 1000).toFixed(s.rate % 1000 ? 1 : 0)} kHz` : '';
+  ctx.fillText(rate, c, 196);
+  ctx.fillText((s.name || '').slice(0, 22), c, 211);
+}
+
+// ---------- state ----------
+const $ = (id) => document.getElementById(id);
+const state = { live: false, level: MIN_DB, peak: MIN_DB, clip: false, rec: 0, mute: 0, rate: 0, name: '' };
+let peakAt = 0, clipUntil = 0, needle = MIN_DB;
+let audio = null, analyser = null, buf = null, demo = false, demoT = 0;
+
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+// ---------- microphone ----------
+async function startMic(deviceId) {
+  try {
+    if (audio) { audio.stream.getTracks().forEach((t) => t.stop()); await audio.ctx.close(); }
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: deviceId ? { exact: deviceId } : undefined,
+      echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    const ctx = new AudioContext();
+    const src = ctx.createMediaStreamSource(stream);
+    analyser = ctx.createAnalyser(); analyser.fftSize = 2048; buf = new Float32Array(analyser.fftSize);
+    src.connect(analyser);
+    const track = stream.getAudioTracks()[0];
+    const settings = track.getSettings();
+    audio = { stream, ctx };
+    state.rate = settings.sampleRate || ctx.sampleRate; state.name = track.label.replace(/\s*\(.*\)\s*$/, '');
+    store.set('mic.device', settings.deviceId || '');
+    demo = false; $('demo').textContent = 'Demo signal';
+    await listDevices(settings.deviceId);
+    $('micNote').textContent = ''; $('start').textContent = 'Restart microphone';
+  } catch (e) {
+    $('micNote').innerHTML = `<span class="err">Microphone not available: ${e.name === 'NotAllowedError' ? 'permission was blocked. Allow the microphone in the address bar and try again.' : e.message}</span>`;
+  }
+}
+async function listDevices(current) {
+  const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput');
+  const sel = $('device'); sel.innerHTML = ''; sel.disabled = false;
+  for (const d of devs) { const o = document.createElement('option'); o.value = d.deviceId; o.textContent = d.label || 'Microphone'; o.selected = d.deviceId === current; sel.append(o); }
+}
+$('start').onclick = () => startMic(store.get('mic.device') || undefined);
+$('device').onchange = (e) => startMic(e.target.value);
+$('demo').onclick = () => {
+  demo = !demo; $('demo').textContent = demo ? 'Stop demo' : 'Demo signal';
+  if (demo) { state.rate = 48000; state.name = 'Demo signal'; }
+};
+
+function measure(dt) {
+  let rmsDb = MIN_DB, pkDb = MIN_DB, clipped = false;
+  if (demo) {
+    demoT += dt;
+    // speech-like: syllables of ~0.2 s, phrases of ~3 s, an occasional shout that clips
+    const env = Math.max(0, Math.sin(demoT * 15) * 0.6 + 0.4) * (Math.sin(demoT * 2.1) > -0.3 ? 1 : 0.05);
+    const shout = (demoT % 9) > 8.4 ? 1.6 : 1;
+    const amp = 0.18 * env * shout * (0.85 + Math.random() * 0.3);
+    rmsDb = 20 * Math.log10(Math.max(amp, 1e-6)); pkDb = 20 * Math.log10(Math.max(amp * 1.9, 1e-6)); clipped = amp * 1.9 >= 0.98 * 0.5;
+  } else if (analyser) {
+    analyser.getFloatTimeDomainData(buf);
+    let sum = 0, pk = 0;
+    for (let i = 0; i < buf.length; i++) { const v = buf[i]; sum += v * v; const a = Math.abs(v); if (a > pk) pk = a; }
+    rmsDb = 10 * Math.log10(Math.max(sum / buf.length, 1e-12)); pkDb = 20 * Math.log10(Math.max(pk, 1e-6)); clipped = pk >= 0.98;
+  } else return false;
+  return { rmsDb, pkDb, clipped };
+}
+
+// ---------- serial link to the display ----------
+let port = null, writer = null;
+async function connectSerial() {
+  if (!('serial' in navigator)) { $('serialNote').innerHTML = '<span class="err">This browser has no USB serial. Use Chrome or Edge.</span>'; return; }
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+    writer = port.writable.getWriter();
+    $('serialNote').textContent = 'Display connected.'; $('connect').textContent = 'Display connected'; $('connect').disabled = true;
+    readSerial();
+  } catch (e) { $('serialNote').innerHTML = `<span class="err">Not connected: ${e.message}</span>`; }
+}
+async function readSerial() {
+  const dec = new TextDecoderStream(); port.readable.pipeTo(dec.writable).catch(() => {});
+  const reader = dec.readable.getReader(); let line = '';
+  try {
+    for (;;) {
+      const { value, done } = await reader.read(); if (done) break;
+      line += value; let i;
+      while ((i = line.indexOf('\n')) >= 0) {
+        const msg = line.slice(0, i).trim(); line = line.slice(i + 1);
+        const m = msg.match(/^M,(\d)/); if (m) state.mute = Number(m[1]);
+      }
+    }
+  } catch {}
+  writer = null; $('connect').disabled = false; $('connect').textContent = 'Connect display';
+  $('serialNote').innerHTML = '<span class="err">Display disconnected. Plug it back in and connect again.</span>';
+}
+let lastSend = 0;
+function sendFrame(now) {
+  if (!writer || now - lastSend < 50) return; lastSend = now;   // 20 frames a second
+  const name = (state.name || '').replace(/[,\r\n]/g, ' ').slice(0, 22);
+  const line = `S,${Math.round(state.level * 10)},${Math.round(state.peak * 10)},${state.clip ? 1 : 0},${state.rec},${state.rate | 0},${name}\n`;
+  writer.write(new TextEncoder().encode(line)).catch(() => {});
+}
+$('connect').onclick = connectSerial;
+
+// ---------- OBS (obs-websocket v5) ----------
+const b64sha = async (s) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))));
+let obs = null;
+$('obsUrl').value = store.get('obs.url') || $('obsUrl').value;
+$('obsConnect').onclick = () => {
+  if (obs) obs.close();
+  const url = $('obsUrl').value.trim(); store.set('obs.url', url);
+  let recording = false, streaming = false;
+  const upd = () => { state.rec = streaming ? 2 : recording ? 1 : 0; $('vRec').textContent = streaming ? 'streaming' : recording ? 'recording' : 'not recording'; };
+  try { obs = new WebSocket(url); } catch (e) { $('obsNote').innerHTML = `<span class="err">${e.message}</span>`; return; }
+  obs.onmessage = async (ev) => {
+    const m = JSON.parse(ev.data);
+    if (m.op === 0) {
+      const d = { rpcVersion: 1, eventSubscriptions: 64 };
+      if (m.d.authentication) { const { challenge, salt } = m.d.authentication; d.authentication = await b64sha((await b64sha($('obsPw').value + salt)) + challenge); }
+      obs.send(JSON.stringify({ op: 1, d }));
+    } else if (m.op === 2) {
+      $('obsNote').textContent = 'OBS connected.';
+      obs.send(JSON.stringify({ op: 6, d: { requestType: 'GetRecordStatus', requestId: 'rec' } }));
+      obs.send(JSON.stringify({ op: 6, d: { requestType: 'GetStreamStatus', requestId: 'str' } }));
+    } else if (m.op === 7) {
+      if (m.d.requestId === 'rec') recording = !!m.d.responseData?.outputActive;
+      if (m.d.requestId === 'str') streaming = !!m.d.responseData?.outputActive;
+      upd();
+    } else if (m.op === 5) {
+      if (m.d.eventType === 'RecordStateChanged') recording = !!m.d.eventData.outputActive;
+      if (m.d.eventType === 'StreamStateChanged') streaming = !!m.d.eventData.outputActive;
+      upd();
+    }
+  };
+  obs.onclose = (ev) => { state.rec = 0; $('vRec').textContent = 'OBS not connected';
+    $('obsNote').innerHTML = ev.code === 4009 ? '<span class="err">Wrong OBS password.</span>' : '<span class="err">OBS is not reachable. Is OBS open with the WebSocket server on?</span>'; obs = null; };
+};
+
+// ---------- loop ----------
+const ctx = $('dial').getContext('2d');
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  const m = measure(dt);
+  if (m) {
+    state.live = true;
+    // VU-like ballistics: fast attack, slower fall
+    const target = Math.max(MIN_DB, m.rmsDb);
+    needle = target > needle ? needle + (target - needle) * Math.min(1, dt / 0.05) : needle + (target - needle) * Math.min(1, dt / 0.3);
+    state.level = needle;
+    if (m.pkDb >= state.peak || now - peakAt > 1500) { state.peak = Math.max(MIN_DB, m.pkDb); peakAt = now; }
+    if (m.clipped) clipUntil = now + 1000;
+    state.clip = now < clipUntil;
+    $('vLevel').textContent = `${state.level.toFixed(1)} dBFS`;
+    $('vPeak').textContent = `${state.peak.toFixed(1)} dBFS${state.clip ? ' · CLIPPING' : ''}`;
+    $('vRate').textContent = state.rate ? `${state.rate} Hz` : '–';
+    $('vDev').textContent = state.name || '–';
+  } else state.live = false;
+  if (writer) $('vMute').textContent = ['no sensor reading', 'mic on (light steady)', 'muted (light blinking)'][state.mute] || '–';
+  drawDial(ctx, state);
+  sendFrame(now);
+  requestAnimationFrame(frame);
+}
+document.fonts.ready.finally(() => requestAnimationFrame(frame));
+</script>
+</body>
+</html>
