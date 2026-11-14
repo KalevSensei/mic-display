@@ -290,8 +290,9 @@ def main():
         manifest.append({"part": name, "volume_mm3": round(s.Volume(), 1), "petg_g": round(s.Volume() / 1000 * 1.27, 1),
                          "size_mm": [round(bb2.xlen, 1), round(bb2.ylen, 1), round(bb2.zlen, 1)]})
     (pr / "manifest.json").write_text(json.dumps(manifest, indent=2))
-    cq.exporters.export(cq.Workplane().add(cq.Compound.makeCompound([d01, d02, brd])), str(asm / "display_unit_with_board.step"))
-    cq.exporters.export(cq.Workplane().add(cq.Compound.makeCompound([foot, du_w, place(brd)])), str(asm / "desk_foot_with_display.step"))
+    # without the board: its 3D model makes each assembly file 188 MB
+    cq.exporters.export(cq.Workplane().add(cq.Compound.makeCompound([d01, d02])), str(asm / "display_unit.step"))
+    cq.exporters.export(cq.Workplane().add(cq.Compound.makeCompound([foot, du_w])), str(asm / "desk_foot_with_display_unit.step"))
     out["parts"] = manifest
     out["failed"] = fail
     (CAD / "checks").mkdir(parents=True, exist_ok=True)
