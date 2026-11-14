@@ -39,6 +39,11 @@ Living plan, updated after every step. Physical steps are ticked only when physi
 - why: the build is finished when it works on his PC and his stand.
 1. Ask him whether his PC is Windows or Mac.
 2. Clip it on, plug in USB, open the companion page in Chrome/Edge and connect once.
+3. The companion page gets a hosted address before hand-over, so his PC needs nothing installed: he opens a link.
+
+## Not yet verified
+- The firmware has not been compiled or run: no Arduino toolchain on this PC and no parts yet. It is compiled at M03 step 2.
+- The companion page was tested with the demo signal; Kalev's own microphone is tested when he opens it (M01 step 2).
 
 ## Open questions (owner's to answer)
 - Classmate's PC: Windows or Mac.
