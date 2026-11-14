@@ -28,11 +28,13 @@ Living plan, updated after every step. Physical steps are ticked only when physi
 1. Solder the LDR divider (`docs/WIRING.md`). Test against any red LED: steady light reads "live", blinking reads "muted".
 2. Print the sensor cup, fit it over the Yeti's LED (one 5-minute check on the classmate's mic).
 
-## M05 · Housing
+## M05 · Housing: one display unit, interchangeable stand adapters
 - status: later
-- why: the display body is usable on its own; the stand clip waits for the stand's measurements.
-1. Display body: 3D-printed in PETG on a JHC Prusa (book as in the monitor-stand plan S07).
-2. Stand clip: designed after measuring the classmate's stand (tube or arm diameter, where the display should sit).
+- why: the display unit is the same on every stand; only a small, cheap adapter changes per stand (owner, 2026-11-14: "that second part can be interchnaged … if u have 3 diffefent mic stands … the first piece is always the same, has all the stuff in it").
+- names: **display unit** (the housing with the screen, the board and the USB port; one design) and **stand adapter** (one per stand model). They join through one fixed **mounting interface**: a quick-release dovetail slide with a snap catch, so an adapter slides on and clicks off without tools. The light-sensor cup is a third small part (it follows the mic, not the stand) and plugs into the display unit with a short cable.
+1. Display unit: front bezel holding the round screen, rear shell holding the XIAO with its USB-C port reachable at the bottom, the female dovetail on the back. 3D-printed in PETG on a JHC Prusa (book as in the monitor-stand plan S07).
+2. Interface: the dovetail and snap dimensions are fixed once and written down here, so every future adapter fits every display unit.
+3. Stand adapter #1: the male dovetail on one side, a clamp shaped for the classmate's stand on the other, designed after measuring it (tube or arm diameter, where the display should sit).
 
 ## M06 · Hand-over to the classmate
 - status: later
