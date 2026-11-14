@@ -13,7 +13,7 @@ Owner decisions, 2026-11-14: no light sensor ("lets use only data the pc can pic
 
 Waveshare ESP32-S3-Touch-AMOLED-1.75: board and round 1.75" AMOLED screen in one, no wiring. We print our own housing, so the Waveshare case is optional (with case = SKU 31262 "-B", without = 31261).
 
-**Buy at The Pi Hut** (owner, 2026-11-14: "the pi hut was actually perfect"): option "Standard + Case", £36.60, 12 in stock on 14 Nov, https://thepihut.com/products/esp32-s3-1-75-amoled-round-touch-display-dev-board-466x466 . To Finland it currently ships only by DHL Express (£30, 1–2 working days); Finnish VAT is charged at checkout, so nothing more is due on delivery (order under €150).
+**Buy at The Pi Hut** (owner, 2026-11-14: "the pi hut was actually perfect"): option "Standard + Case", £36.60, 12 in stock on 14 Nov, https://thepihut.com/products/esp32-s3-1-75-amoled-round-touch-display-dev-board-466x466 . To Finland it currently ships only by DHL Express (£30, 1–2 working days); Finnish VAT is charged at checkout. Since 1 July 2026 the EU also charges a flat €3 customs duty on parcels under €150, and Pi Hut does not collect it, so DHL may ask about €3 (possibly plus a DHL fee) before delivery (see DELIVERY.md).
 
 Seller bar (owner, 2026-11-14): a shop is recommended only with a physical shop, or at least 300 Trustpilot reviews and a real online presence. Grobotronics and OpenELAB (cheaper listings found 14 Nov) fail it and are not used.
 

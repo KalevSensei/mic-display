@@ -10,7 +10,7 @@ Living plan, updated after every step. Physical steps are ticked only when physi
 3. **Demo signal** runs the dial without a mic.
 
 ## M02 · Order the parts
-- status: done 2026-11-14 (ordered by Kalev): The Pi Hut order #[order no. removed], ESP32-S3 1.75" AMOLED board "Standard + Case", DHL Express (2–3 working days). Dispatch expected Mon 16 Nov, arrival about Wed 18 to Thu 19 Nov. Not yet received.
+- status: done 2026-11-14 (ordered by Kalev): The Pi Hut order #[order no. removed], ESP32-S3 1.75" AMOLED board "Standard + Case", DHL Express (2–3 working days). Dispatch expected Mon 16 Nov, arrival Tue 17 to Wed 18 Nov, Thu 19 Nov at the latest. Not yet received. Watched twice a day by the scheduled task mic-board-delivery-watch, which emails Kalev if dispatch, transit or delivery slips, if DHL asks for duty, or once it arrives; timeline, checkpoints and messages in docs/DELIVERY.md.
 - why: the board is the only part JHC does not have.
 
 ## M03 · Flash the display and wire it on the desk
