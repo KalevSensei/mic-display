@@ -13,7 +13,7 @@ Uni engineering project (LAB, Engineering Curiosity), Kalev, started 2026-11-14.
 
 ## How it works
 - **Companion page** (`companion/index.html`, runs in Chrome or Edge on Windows or Mac, nothing to install): listens to the microphone, measures level, peak and clipping, reads the sample rate and device name, optionally reads OBS recording status, draws the exact dial the display will show, and streams it to the display over the USB cable (Web Serial).
-- **Display** (`firmware/mic_display/`): Seeed XIAO ESP32C3 + 1.28" round GC9A01 LCD. Draws the dial from what the page sends, shows NO SIGNAL after 3 s of silence (the mic's own mute) and "waiting for PC" when nothing arrives. USB powers everything. The upgraded build (1.75" AMOLED) gets the same firmware ported.
+- **Display** (`firmware/mic_display/`): Waveshare ESP32-S3-Touch-AMOLED-1.75, a 1.75" round 466 × 466 AMOLED with the processor on its back, no wiring. Draws the same dial as the page, in the page's typeface, from what the page sends; shows NO SIGNAL after 3 s of silence (the mic's own mute) and "waiting for PC" when nothing arrives. USB powers everything. Touch is not used. Build and flash: docs/PLAN.md M03. (The first firmware for the XIAO ESP32C3 + GC9A01 basic build is in git history, commit be7ddd2.)
 
 ## Files
 - `docs/PLAN.md`: the build steps in order, with status.

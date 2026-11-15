@@ -4,6 +4,8 @@
 Nothing to wire: board and screen are one piece. One USB-C cable to the PC powers it and carries the data.
 
 ## Basic build (XIAO ESP32C3 + 1.28" round GC9A01)
+Not the build any more: the AMOLED board was bought and the firmware now targets it. The XIAO firmware this wiring belongs to is in git history (commit be7ddd2, `firmware/mic_display/mic_display.ino`).
+
 Board pins are named D0–D10, 3V3, GND, 5V. Display pins are usually labelled VCC, GND, SCL, SDA, DC, CS, RST (some modules also have BL). Every wire is under 10 cm.
 
 | Display pin | Board pin | What it is |
