@@ -6,7 +6,7 @@
 <title>Mic display</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #f4f5f7; --surface: #ffffff; --line: #d9dde3; --text: #14171c; --muted: #5a626e;
@@ -37,6 +37,7 @@
   label { display: block; font-size: 14px; color: var(--muted); margin: 12px 0 4px; }
   select, input { width: 100%; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line);
     background: var(--bg); color: var(--text); font: inherit; }
+  select[disabled] { opacity: .7; }
   dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; }
   dt { color: var(--muted); font-size: 14px; }
   dd { margin: 0; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
@@ -48,8 +49,8 @@
 <main class="wrap">
   <section>
     <h1>Mic display</h1>
-    <p class="lead">The dial the stand display shows, live from this computer's microphone.</p>
-    <div class="stage"><canvas id="dial" width="240" height="240" aria-label="Microphone level dial"></canvas></div>
+    <p class="lead">The screen the stand display shows, live from this computer's microphone.</p>
+    <div class="stage"><canvas id="dial" width="240" height="240" aria-label="Stand display preview"></canvas></div>
   </section>
   <section>
     <div class="card">
@@ -66,12 +67,23 @@
       <h2>Stand display</h2>
       <div class="row"><button class="btn" id="connect">Connect display</button></div>
       <p class="note" id="serialNote">Plug the display into USB, then connect and pick its port.</p>
+      <label for="face">Face</label>
+      <select id="face">
+        <option value="dial">Needle dial</option>
+        <option value="bars">Frequency bars</option>
+        <option value="loudness">Loudness</option>
+        <option value="talk">Talk time</option>
+        <option value="clock">Clock</option>
+      </select>
+      <p class="note" id="faceNote">Swipe the display left or right to change it; this preview follows.</p>
     </div>
     <div class="card">
       <h2>Now</h2>
       <dl>
         <dt>Level</dt><dd id="vLevel">–</dd>
         <dt>Peak</dt><dd id="vPeak">–</dd>
+        <dt>Loudness</dt><dd id="vLufs">–</dd>
+        <dt>Talk time</dt><dd id="vTalk">–</dd>
         <dt>Sample rate</dt><dd id="vRate">–</dd>
         <dt>Device</dt><dd id="vDev">–</dd>
         <dt>Signal</dt><dd id="vSig">–</dd>
@@ -81,71 +93,151 @@
 </main>
 <script>
 'use strict';
-// ---------- shared dial design (the firmware draws the same layout) ----------
+// The display's firmware (firmware/mic_display/ui.h) draws the same faces at 466 px; this page draws them at
+// 240 px. Protocol between the two: docs/PROTOCOL.md.
+
+// ---------- shared design ----------
 const MIN_DB = -60, MAX_DB = 0;            // scale of the dial
 const A0 = 150, A1 = 390;                  // arc from 150° (lower left) clockwise to 30° (lower right), degrees
+const RAD = Math.PI / 180;
 const dbToAngle = (db) => {
   const t = (Math.max(MIN_DB, Math.min(MAX_DB, db)) - MIN_DB) / (MAX_DB - MIN_DB);
-  return (A0 + t * (A1 - A0)) * Math.PI / 180;
+  return (A0 + t * (A1 - A0)) * RAD;
 };
-const COL = { bg: '#000000', track: '#1d222a', green: '#2ecc71', amber: '#f5b301', red: '#ff3b30', text: '#f2f4f7', dim: '#7d8794', needle: '#ffffff' };
+const COL = { bg: '#000000', track: '#1d222a', line: '#2a3039', faint: '#3a414b', green: '#2ecc71', amber: '#f5b301', red: '#ff3b30',
+  text: '#f2f4f7', dim: '#7d8794', needle: '#ffffff' };
+const FONT = { small: '500 11px "IBM Plex Sans", sans-serif', msg: '500 16px "IBM Plex Sans", sans-serif', warn: '600 16px "IBM Plex Sans", sans-serif',
+  label: '600 10px "IBM Plex Sans", sans-serif', big: '600 26px "IBM Plex Mono", monospace', huge: '600 42px "IBM Plex Mono", monospace' };
+const FACES = ['dial', 'bars', 'loudness', 'talk', 'clock'];
+const c = 120;
+
+function text(ctx, s, x, y, font, col, align = 'center') { ctx.font = font; ctx.fillStyle = col; ctx.textAlign = align; ctx.fillText(s, x, y); }
+function fit(ctx, s, font, maxW) {   // cut to maxW with "...", as the firmware's fitText
+  ctx.font = font; if (ctx.measureText(s).width <= maxW) return s;
+  for (let n = s.length - 1; n > 0; n--) { const t = s.slice(0, n).trimEnd() + '...'; if (ctx.measureText(t).width <= maxW) return t; }
+  return '...';
+}
+function sector(ctx, r0, r1, a, b, col) {   // ring segment r0..r1 between angles a..b (degrees)
+  ctx.fillStyle = col; ctx.beginPath(); ctx.arc(c, c, r1, a * RAD, b * RAD); ctx.arc(c, c, r0, b * RAD, a * RAD, true); ctx.closePath(); ctx.fill();
+}
+function prelude(ctx, s) {   // background, clip ring (inside the shell's window), "waiting for PC"
+  ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, 240, 240);
+  if (s.clip && s.live) { ctx.strokeStyle = COL.red; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(c, c, 107.75, 0, Math.PI * 2); ctx.stroke(); }
+  if (!s.live) { text(ctx, 'waiting for PC', c, c + 6, FONT.msg, COL.dim); return false; }
+  return true;
+}
+function levelNumber(ctx, s, y, yUnit) {   // NO SIGNAL (3 s of silence, e.g. the mic's own mute button) takes the number's place
+  if (s.silent) { text(ctx, 'NO SIGNAL', c, y + 6, FONT.warn, COL.amber); return; }
+  text(ctx, s.level <= MIN_DB ? '–∞' : Math.round(s.level).toString(), c, y, FONT.big, COL.text);
+  text(ctx, 'dBFS', c, yUnit, FONT.small, COL.dim);
+}
+function footer(ctx, s, withRate) {   // rate (and clip count in red) at 196, device name at 211
+  const rate = withRate && s.rate ? `${(s.rate / 1000).toFixed(s.rate % 1000 ? 1 : 0)} kHz` : '';
+  const clips = withRate && s.clips ? `${s.clips} clip${s.clips === 1 ? '' : 's'}` : '';
+  const dot = rate && clips ? '  ·  ' : '';
+  ctx.font = FONT.small;
+  let x = c - (ctx.measureText(rate).width + ctx.measureText(dot).width + ctx.measureText(clips).width) / 2;
+  for (const [t, col] of [[rate, COL.dim], [dot, COL.dim], [clips, COL.red]]) { if (!t) continue; text(ctx, t, x, 196, FONT.small, col, 'left'); x += ctx.measureText(t).width; }
+  text(ctx, fit(ctx, s.name || '', FONT.small, 98), c, 211, FONT.small, COL.dim);
+}
+function faceLabel(ctx, t) { ctx.letterSpacing = '1.2px'; text(ctx, t, c, 68, FONT.label, COL.dim); ctx.letterSpacing = '0px'; }
+function faceRing(ctx, t, col) { sector(ctx, 98, 104, A0, A1, COL.track); if (t > 0.002) sector(ctx, 98, 104, A0, A0 + Math.min(1, t) * (A1 - A0), col); }
+const fmtLufs = (v) => (v == null || isNaN(v) || v < -70) ? '–∞' : (Math.round(v * 10) < 0 ? '−' : '') + (Math.abs(Math.round(v * 10)) / 10).toFixed(1);
+const fmtDur = (s) => s == null || s < 0 ? '–:–' : s >= 3600 ? `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 function drawDial(ctx, s) {
-  const c = 120;
-  ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, 240, 240);
-  if (s.clip) { ctx.strokeStyle = COL.red; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(c, c, 116, 0, Math.PI * 2); ctx.stroke(); }
-  if (!s.live) {
-    ctx.fillStyle = COL.dim; ctx.font = '500 16px "IBM Plex Sans", sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('waiting for PC', c, c + 6); return;
-  }
-  // zones
+  if (!prelude(ctx, s)) return;
   const zone = (from, to, col) => { ctx.strokeStyle = col; ctx.lineWidth = 10; ctx.beginPath(); ctx.arc(c, c, 100, dbToAngle(from), dbToAngle(to)); ctx.stroke(); };
   zone(-60, -18, '#16502f'); zone(-18, -6, '#5a4300'); zone(-6, 0, '#5c1612');
-  // lit part up to the level
   const lit = (from, to, col) => { if (s.level > from) zone(from, Math.min(to, s.level), col); };
   lit(-60, -18, COL.green); lit(-18, -6, COL.amber); lit(-6, 0, COL.red);
-  // ticks and labels
-  ctx.fillStyle = COL.dim; ctx.strokeStyle = COL.dim; ctx.font = '500 11px "IBM Plex Sans", sans-serif'; ctx.textAlign = 'center';
+  ctx.strokeStyle = COL.dim; ctx.lineCap = 'butt';
   for (const db of [-60, -48, -36, -24, -18, -12, -6, 0]) {
     const a = dbToAngle(db);
     ctx.lineWidth = 2; ctx.beginPath();
     ctx.moveTo(c + Math.cos(a) * 88, c + Math.sin(a) * 88); ctx.lineTo(c + Math.cos(a) * 81, c + Math.sin(a) * 81); ctx.stroke();
-    if (db !== -18) ctx.fillText(String(db), c + Math.cos(a) * 70, c + Math.sin(a) * 70 + 4);   // -18 is a tick only (zone edge)
+    if (db !== -18) text(ctx, String(db), c + Math.cos(a) * 70, c + Math.sin(a) * 70 + 4, FONT.small, COL.dim);   // -18 is a tick only (zone edge)
   }
-  // peak marker
   if (s.peak > MIN_DB) {
     const a = dbToAngle(s.peak);
     ctx.fillStyle = s.peak > -6 ? COL.red : COL.text;
     ctx.beginPath(); ctx.arc(c + Math.cos(a) * 100, c + Math.sin(a) * 100, 4, 0, Math.PI * 2); ctx.fill();
   }
-  // needle
   const a = dbToAngle(s.level);
   ctx.strokeStyle = COL.needle; ctx.lineWidth = 3; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(c - Math.cos(a) * 10, c - Math.sin(a) * 10); ctx.lineTo(c + Math.cos(a) * 92, c + Math.sin(a) * 92); ctx.stroke();
+  ctx.lineCap = 'butt';
   ctx.fillStyle = COL.needle; ctx.beginPath(); ctx.arc(c, c, 6, 0, Math.PI * 2); ctx.fill();
-  // readout
-  // NO SIGNAL (3 s of silence, e.g. the mic's own mute button) takes the number's place
-  if (s.silent) {
-    ctx.fillStyle = COL.amber; ctx.font = '600 16px "IBM Plex Sans", sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('NO SIGNAL', c, c + 56);
-  } else {
-    ctx.fillStyle = COL.text; ctx.font = '600 26px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
-    ctx.fillText(s.level <= MIN_DB ? '–∞' : Math.round(s.level).toString(), c, c + 50);
-    ctx.fillStyle = COL.dim; ctx.font = '500 11px "IBM Plex Sans", sans-serif'; ctx.fillText('dBFS', c, c + 64);
-  }
-  // footer: rate and device
-  ctx.fillStyle = COL.dim; ctx.font = '500 11px "IBM Plex Sans", sans-serif';
-  const rate = s.rate ? `${(s.rate / 1000).toFixed(s.rate % 1000 ? 1 : 0)} kHz` : '';
-  ctx.fillText(rate, c, 196);
-  ctx.fillText((s.name || '').slice(0, 22), c, 211);
+  levelNumber(ctx, s, c + 50, c + 64);
+  footer(ctx, s, true);
 }
+function drawBars(ctx, s) {   // bass lower left, over the top, treble lower right; colour by height like the dial's zones
+  if (!prelude(ctx, s)) return;
+  const n = s.bands.length || 32, slot = (A1 - A0) / n, r0 = 60, len = 43, g = r0 + len * 0.7, am = r0 + len * 0.88;
+  for (let i = 0; i < n; i++) {
+    const a = A0 + i * slot + slot * 0.14, b = a + slot * 0.72, top = r0 + len * (s.bands[i] || 0) / 100;
+    sector(ctx, r0, r0 + len, a, b, COL.track);
+    if (top > r0) sector(ctx, r0, Math.min(top, g), a, b, COL.green);
+    if (top > g) sector(ctx, g, Math.min(top, am), a, b, COL.amber);
+    if (top > am) sector(ctx, am, top, a, b, COL.red);
+  }
+  text(ctx, 'bass', c - 68, 182, FONT.small, COL.dim); text(ctx, 'treble', c + 68, 182, FONT.small, COL.dim);
+  levelNumber(ctx, s, c + 10, c + 24);
+  footer(ctx, s, true);
+}
+function drawLoudness(ctx, s) {   // short-term LUFS big, session (integrated) under it; ring −50..0 LUFS, dot = session
+  if (!prelude(ctx, s)) return;
+  faceLabel(ctx, 'LOUDNESS');
+  faceRing(ctx, isNaN(s.lufsS) ? 0 : (s.lufsS + 50) / 50, COL.green);
+  if (!isNaN(s.lufsI) && s.lufsI >= -50) {
+    const a = (A0 + (Math.min(0, s.lufsI) + 50) / 50 * (A1 - A0)) * RAD;
+    ctx.fillStyle = COL.text; ctx.beginPath(); ctx.arc(c + Math.cos(a) * 101, c + Math.sin(a) * 101, 4, 0, Math.PI * 2); ctx.fill();
+  }
+  text(ctx, fmtLufs(s.lufsS), c, c + 14, FONT.huge, COL.text);
+  text(ctx, 'LUFS short-term', c, c + 31, FONT.small, COL.dim);
+  const lab = 'Session  ', v = fmtLufs(s.lufsI);
+  ctx.font = FONT.msg; const x = c - (ctx.measureText(lab).width + ctx.measureText(v).width) / 2;
+  text(ctx, lab, x, c + 52, FONT.msg, COL.dim, 'left'); text(ctx, v, x + ctx.measureText(lab).width, c + 52, FONT.msg, COL.text, 'left');
+  text(ctx, '−50', c - 64, 190, FONT.small, COL.dim); text(ctx, '0', c + 64, 190, FONT.small, COL.dim);
+}
+function drawTalk(ctx, s) {   // time with the voice above the silence floor this session; ring = share of the session
+  if (!prelude(ctx, s)) return;
+  faceLabel(ctx, 'TALK TIME');
+  faceRing(ctx, s.session > 0 ? s.talk / s.session : 0, COL.green);
+  text(ctx, fmtDur(s.talk), c, c + 14, FONT.huge, COL.text);
+  text(ctx, `of ${fmtDur(s.session)} session`, c, c + 40, FONT.msg, COL.dim);
+  const talking = !s.silent && s.level > SILENT_DB, w = talking ? 'talking' : 'quiet';
+  ctx.font = FONT.small; const x = c - (ctx.measureText(w).width + 7) / 2;
+  ctx.fillStyle = talking ? COL.green : COL.faint; ctx.beginPath(); ctx.arc(x + 2.5, c + 60.5, 2.5, 0, Math.PI * 2); ctx.fill();
+  text(ctx, w, x + 7, c + 64, FONT.small, talking ? COL.green : COL.dim, 'left');
+  footer(ctx, s, false);
+}
+function drawClock(ctx, s) {   // 60 minute ticks, the seconds sweep lit
+  ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, 240, 240);
+  if (s.clip && s.live) { ctx.strokeStyle = COL.red; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(c, c, 107.75, 0, Math.PI * 2); ctx.stroke(); }
+  const d = new Date(), sec = d.getSeconds();
+  ctx.lineCap = 'butt';
+  for (let i = 0; i < 60; i++) {
+    const a = (-90 + i * 6) * RAD, five = i % 5 === 0, r0 = five ? 94 : 98;
+    ctx.strokeStyle = i === sec ? COL.text : i < sec ? COL.dim : five ? COL.faint : COL.line; ctx.lineWidth = five ? 1.8 : 1.1;
+    ctx.beginPath(); ctx.moveTo(c + Math.cos(a) * r0, c + Math.sin(a) * r0); ctx.lineTo(c + Math.cos(a) * 104, c + Math.sin(a) * 104); ctx.stroke();
+  }
+  text(ctx, `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`, c, c + 14, FONT.huge, COL.text);
+  const WD = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  text(ctx, `${WD[d.getDay()]} ${d.getDate()} ${MO[d.getMonth()]}`, c, c + 42, FONT.msg, COL.dim);
+}
+const DRAW = { dial: drawDial, bars: drawBars, loudness: drawLoudness, talk: drawTalk, clock: drawClock };
 
 // ---------- state ----------
 const $ = (id) => document.getElementById(id);
-const state = { live: false, level: MIN_DB, peak: MIN_DB, clip: false, silent: false, rate: 0, name: '' };
-const SILENT_DB = -55;   // below this for 3 s = NO SIGNAL, same rule as the firmware
-let peakAt = 0, clipUntil = 0, needle = MIN_DB, loudAt = 0;
-let audio = null, analyser = null, buf = null, demo = false, demoT = 0;
+const SILENT_DB = -55;   // below this for 3 s = NO SIGNAL; also the floor for talk time (same rule as the firmware)
+const state = { live: false, level: MIN_DB, peak: MIN_DB, clip: false, silent: false, rate: 0, name: '', clips: 0,
+  bands: new Array(32).fill(0), lufsS: NaN, lufsI: NaN, talk: 0, session: 0 };
+let face = 'dial', faceFromBoard = false, peakHoldS = 1;   // the display announces its face and peak hold (C lines)
+let peakAt = 0, clipUntil = 0, needle = MIN_DB, loudAt = 0, wasClip = false, sendPeak = MIN_DB;
+let audio = null, analyser = null, buf = null, bandAn = null, bandBuf = null, kAn = null, kBuf = null, demo = false, demoT = 0;
+let devs = [], currentId = '';
+let talkT = 0, sessionT = 0;
 
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
 
@@ -159,22 +251,44 @@ async function startMic(deviceId) {
     const src = ctx.createMediaStreamSource(stream);
     analyser = ctx.createAnalyser(); analyser.fftSize = 2048; buf = new Float32Array(analyser.fftSize);
     src.connect(analyser);
+    bandAn = ctx.createAnalyser(); bandAn.fftSize = 4096; bandAn.smoothingTimeConstant = 0.5; bandBuf = new Float32Array(bandAn.frequencyBinCount);
+    src.connect(bandAn);
+    // K-weighting (ITU-R BS.1770): high shelf +4 dB above ~1.7 kHz, then high-pass at ~38 Hz
+    const shelf = ctx.createBiquadFilter(); shelf.type = 'highshelf'; shelf.frequency.value = 1681.97; shelf.gain.value = 4.0;
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 38.14; hp.Q.value = 0.5;
+    kAn = ctx.createAnalyser(); kAn.fftSize = 2048; kBuf = new Float32Array(kAn.fftSize);
+    src.connect(shelf); shelf.connect(hp); hp.connect(kAn);
     const track = stream.getAudioTracks()[0];
     const settings = track.getSettings();
     audio = { stream, ctx };
-    state.rate = settings.sampleRate || ctx.sampleRate; state.name = track.label.replace(/\s*\(.*\)\s*$/, '');
-    store.set('mic.device', settings.deviceId || '');
+    state.rate = settings.sampleRate || ctx.sampleRate; state.name = cleanName(track.label);
+    currentId = settings.deviceId || '';
+    store.set('mic.device', currentId);
     demo = false; $('demo').textContent = 'Demo signal';
-    await listDevices(settings.deviceId);
+    await listDevices(currentId);
     $('micNote').textContent = ''; $('start').textContent = 'Restart microphone';
   } catch (e) {
     $('micNote').innerHTML = `<span class="err">Microphone not available: ${e.name === 'NotAllowedError' ? 'permission was blocked. Allow the microphone in the address bar and try again.' : e.message}</span>`;
   }
 }
+// "Microphone (Yeti Stereo Microphone) (046d:0ab1)" -> "Yeti Stereo Microphone": drop the USB id, keep the device's own name
+function cleanName(label) {
+  const l = (label || '').replace(/\s*\([0-9a-f]{4}:[0-9a-f]{4}\)\s*$/i, '');
+  const m = l.match(/^[^()]+ \((.+)\)$/);
+  return (m ? m[1] : l).replace(/^(Default|Communications) - /, '');
+}
 async function listDevices(current) {
-  const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput');
+  devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput');
   const sel = $('device'); sel.innerHTML = ''; sel.disabled = false;
   for (const d of devs) { const o = document.createElement('option'); o.value = d.deviceId; o.textContent = d.label || 'Microphone'; o.selected = d.deviceId === current; sel.append(o); }
+  sendInputs();
+}
+// The list the display shows: real inputs only (Windows' "Default" and "Communications" entries are aliases).
+function boardInputs() {
+  const list = devs.filter((d) => d.deviceId !== 'default' && d.deviceId !== 'communications' && d.label);
+  let i = list.findIndex((d) => d.deviceId === currentId);
+  if (i < 0) { const cur = devs.find((d) => d.deviceId === currentId); if (cur) i = list.findIndex((d) => d.groupId === cur.groupId); }
+  return { list, index: i };
 }
 $('start').onclick = () => startMic(store.get('mic.device') || undefined);
 $('device').onchange = (e) => startMic(e.target.value);
@@ -183,26 +297,71 @@ $('demo').onclick = () => {
   if (demo) { state.rate = 48000; state.name = 'Demo signal'; }
 };
 
-function measure(dt) {
-  let rmsDb = MIN_DB, pkDb = MIN_DB, clipped = false;
+const BAND_LO = 50, BAND_HI = 16000, NB = 32;
+const bandEdge = (i) => BAND_LO * Math.pow(BAND_HI / BAND_LO, i / NB);
+const toBand = (db) => Math.round(Math.max(0, Math.min(100, (db + 90) / 65 * 100)));   // −90 dB -> 0, −25 dB -> 100
+function measure(dt, wantBands) {
+  let rmsDb = MIN_DB, pkDb = MIN_DB, clipped = false, ms = 0, bands = null;
   if (demo) {
     demoT += dt;
     // speech-like: syllables of ~0.2 s, phrases of ~3 s, an occasional shout that clips
-    const env = Math.max(0, Math.sin(demoT * 15) * 0.6 + 0.4) * (Math.sin(demoT * 2.1) > -0.3 ? 1 : 0.05);
+    const env = Math.max(0, Math.sin(demoT * 15) * 0.6 + 0.4) * (Math.sin(demoT * 2.1) > -0.3 ? 1 : 0.003);   // pauses between phrases fall below the silence floor
     const shout = (demoT % 9) > 8.4 ? 1.6 : 1;
     const amp = 0.18 * env * shout * (0.85 + Math.random() * 0.3);
     rmsDb = 20 * Math.log10(Math.max(amp, 1e-6)); pkDb = 20 * Math.log10(Math.max(amp * 1.9, 1e-6)); clipped = amp * 1.9 >= 0.98 * 0.5;
+    ms = amp * amp;
+    if (wantBands) bands = Array.from({ length: NB }, (_, i) => {   // a voice's spectrum: body around 150–600 Hz, presence around 2.5 kHz
+      const f = Math.sqrt(bandEdge(i) * bandEdge(i + 1)), o = Math.log2(f / 350);
+      return toBand(rmsDb - 14 - 7 * Math.abs(o) * (o > 0 ? 1.1 : 2) + 9 * Math.exp(-2 * Math.log2(f / 2500) ** 2) + Math.random() * 4 - 2);
+    });
   } else if (analyser) {
     analyser.getFloatTimeDomainData(buf);
     let sum = 0, pk = 0;
     for (let i = 0; i < buf.length; i++) { const v = buf[i]; sum += v * v; const a = Math.abs(v); if (a > pk) pk = a; }
     rmsDb = 10 * Math.log10(Math.max(sum / buf.length, 1e-12)); pkDb = 20 * Math.log10(Math.max(pk, 1e-6)); clipped = pk >= 0.98;
+    kAn.getFloatTimeDomainData(kBuf);
+    for (let i = 0; i < kBuf.length; i++) ms += kBuf[i] * kBuf[i];
+    ms /= kBuf.length;
+    if (wantBands) {
+      bandAn.getFloatFrequencyData(bandBuf);
+      const hz = audio.ctx.sampleRate / bandAn.fftSize;
+      bands = Array.from({ length: NB }, (_, i) => {
+        let lo = Math.ceil(bandEdge(i) / hz), hi = Math.floor(bandEdge(i + 1) / hz), m = -Infinity;
+        if (hi < lo) lo = hi = Math.round(Math.sqrt(bandEdge(i) * bandEdge(i + 1)) / hz);
+        for (let b = lo; b <= hi && b < bandBuf.length; b++) m = Math.max(m, bandBuf[b]);
+        return toBand(m);
+      });
+    }
   } else return false;
-  return { rmsDb, pkDb, clipped };
+  return { rmsDb, pkDb, clipped, ms, bands };
+}
+
+// ---------- loudness (BS.1770-style, from the K-weighted signal; approximate: sampled per animation frame) ----------
+const lufsOf = (ms) => -0.691 + 10 * Math.log10(Math.max(ms, 1e-12));
+const loud = { hist: [], histT: 0, chunkSum: 0, chunkT: 0, chunks: [], blocks: [] };
+function loudFeed(ms, dt) {
+  loud.hist.push([dt, ms]); loud.histT += dt;
+  while (loud.histT > 3 && loud.hist.length > 1) loud.histT -= loud.hist.shift()[0];   // short-term: last 3 s
+  loud.chunkSum += ms * dt; loud.chunkT += dt;
+  if (loud.chunkT >= 0.1) {   // 100 ms steps; 400 ms blocks with 75 % overlap for the session value
+    loud.chunks.push(loud.chunkSum / loud.chunkT); loud.chunkSum = 0; loud.chunkT = 0;
+    if (loud.chunks.length > 4) loud.chunks.shift();
+    if (loud.chunks.length === 4) { const b = loud.chunks.reduce((a, v) => a + v, 0) / 4; if (lufsOf(b) > -70) loud.blocks.push(b); }   // absolute gate −70
+  }
+}
+function loudUpdate() {
+  let w = 0, s = 0; for (const [dt, ms] of loud.hist) { w += dt; s += dt * ms; }
+  state.lufsS = w >= 0.4 ? lufsOf(s / w) : NaN;
+  if (!loud.blocks.length) { state.lufsI = NaN; return; }
+  const gate = lufsOf(loud.blocks.reduce((a, v) => a + v, 0) / loud.blocks.length) - 10;   // relative gate −10 LU
+  const kept = loud.blocks.filter((b) => lufsOf(b) > gate);
+  state.lufsI = kept.length ? lufsOf(kept.reduce((a, v) => a + v, 0) / kept.length) : NaN;
 }
 
 // ---------- serial link to the display ----------
-let port = null, writer = null;
+let port = null, writer = null, boardFw = '', lastT = 0, lastInfo = 0;
+const enc = new TextEncoder();
+function send(line) { if (writer) writer.write(enc.encode(line + '\n')).catch(() => {}); }
 async function connectSerial() {
   if (!('serial' in navigator)) { $('serialNote').innerHTML = '<span class="err">This browser has no USB serial. Use Chrome or Edge.</span>'; return; }
   try {
@@ -210,6 +369,7 @@ async function connectSerial() {
     await port.open({ baudRate: 115200 });
     writer = port.writable.getWriter();
     $('serialNote').textContent = 'Display connected.'; $('connect').textContent = 'Display connected'; $('connect').disabled = true;
+    lastT = 0; sendInfo(performance.now());
     readSerial();
   } catch (e) { $('serialNote').innerHTML = `<span class="err">Not connected: ${e.message}</span>`; }
 }
@@ -220,47 +380,97 @@ async function readSerial() {
     for (;;) {
       const { value, done } = await reader.read(); if (done) break;
       line += value; let i;
-      while ((i = line.indexOf('\n')) >= 0) {
-        line = line.slice(i + 1);   // the display sends nothing back; reading only detects a disconnect
-      }
+      while ((i = line.indexOf('\n')) >= 0) { onBoardLine(line.slice(0, i).replace(/\r$/, '')); line = line.slice(i + 1); }
     }
   } catch {}
-  writer = null; $('connect').disabled = false; $('connect').textContent = 'Connect display';
+  writer = null; boardFw = ''; faceFromBoard = false; $('face').disabled = false;
+  $('faceNote').textContent = 'Swipe the display left or right to change it; this preview follows.';
+  $('connect').disabled = false; $('connect').textContent = 'Connect display';
   $('serialNote').innerHTML = '<span class="err">Display disconnected. Plug it back in and connect again.</span>';
 }
-let lastSend = 0;
+// Board -> PC lines. This page acts on what a browser can do: its own input (C,mic), the face shown, peak hold
+// and reset. Windows mute and volumes (C,mute / vol / outmute / outvol / out) need the PC app; they are left
+// unanswered here, so the display keeps those settings greyed.
+function onBoardLine(l) {
+  const f = l.split(',');
+  if (f[0] !== 'C') return;
+  if (f[1] === 'hello') {
+    if (boardFw !== f[2]) { boardFw = f[2]; $('serialNote').textContent = `Display connected (firmware ${boardFw}).`; sendInfo(performance.now(), true); }
+  } else if (f[1] === 'face' && FACES.includes(f[2])) {
+    face = f[2]; faceFromBoard = true; $('face').value = face; $('face').disabled = true;
+    $('faceNote').textContent = 'Follows the display: swipe it left or right to change the face.';
+  } else if (f[1] === 'peakhold') peakHoldS = Math.max(0, +f[2] || 0);
+  else if (f[1] === 'reset') { state.peak = MIN_DB; sendPeak = MIN_DB; state.clips = 0; }
+  else if (f[1] === 'mic') { const { list } = boardInputs(), d = list[+f[2]]; if (d) startMic(d.deviceId); }
+}
+function sendInputs() {   // P,<mute>,<vol>,<index>,<count>,<names...>: mute and volume "-" (a browser cannot read or set them)
+  if (!writer) return;
+  const { list, index } = boardInputs();
+  if (!audio || index < 0) { send('P,-,-,-,0'); return; }
+  const names = list.slice(0, 8).map((d) => cleanName(d.label).replace(/[,\r\n]/g, ' ').slice(0, 31));
+  send(`P,-,-,${index},${names.length},${names.join(',')}`);
+}
+function sendInfo(now, force) {   // who we are, the input list, and the clock (T at connect and every minute)
+  if (!writer) return;
+  send(`H,Companion page,2`);
+  sendInputs();
+  if (force || now - lastT > 60000) { lastT = now; const d = new Date(); send(`T,${Math.floor(d.getTime() / 1000)},${-d.getTimezoneOffset()}`); }
+}
+let lastSend = 0, lastL = 0;
 function sendFrame(now) {
-  if (!writer || now - lastSend < 50) return; lastSend = now;   // 20 frames a second
+  if (!writer) return;
+  if (now - lastInfo > 2000) { lastInfo = now; sendInfo(now); }
+  if (now - lastL >= 250) {   // L,<short-term LUFS x10>,<session LUFS x10>,<talk s>,<session s>, 4 a second
+    lastL = now;
+    const n = (v) => isNaN(v) ? '-' : Math.round(v * 10);
+    if (state.live) send(`L,${n(state.lufsS)},${n(state.lufsI)},${Math.floor(talkT)},${Math.floor(sessionT)}`);
+  }
+  if (now - lastSend < 50) return; lastSend = now;   // 20 frames a second
   const name = (state.name || '').replace(/[,\r\n]/g, ' ').slice(0, 22);
-  const line = `S,${Math.round(state.level * 10)},${Math.round(state.peak * 10)},${state.clip ? 1 : 0},0,${state.rate | 0},${name}\n`;
-  writer.write(new TextEncoder().encode(line)).catch(() => {});
+  // peak = the highest peak since the previous line; the display holds it as its Peak hold setting says
+  send(`S,${Math.round(state.level * 10)},${Math.round(sendPeak * 10)},${state.clip ? 1 : 0},0,${state.rate | 0},${name}`);
+  sendPeak = MIN_DB;
+  if (face === 'bars') send(`F,${state.bands.length},${state.bands.join(',')}`);
 }
 $('connect').onclick = connectSerial;
+$('face').onchange = (e) => { if (!faceFromBoard) face = e.target.value; };
 
 // ---------- loop ----------
 const ctx = $('dial').getContext('2d');
-let last = performance.now();
+let last = performance.now(), lastLoud = 0;
 function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
-  const m = measure(dt);
+  const m = measure(dt, face === 'bars');
   if (m) {
     state.live = true;
     // VU-like ballistics: fast attack, slower fall
     const target = Math.max(MIN_DB, m.rmsDb);
     needle = target > needle ? needle + (target - needle) * Math.min(1, dt / 0.05) : needle + (target - needle) * Math.min(1, dt / 0.3);
     state.level = needle;
-    if (m.pkDb >= state.peak || now - peakAt > 1500) { state.peak = Math.max(MIN_DB, m.pkDb); peakAt = now; }
+    const pk = Math.max(MIN_DB, m.pkDb);
+    sendPeak = Math.max(sendPeak, pk);
+    if (peakHoldS === 0 || pk >= state.peak || now - peakAt > peakHoldS * 1000) { state.peak = pk; peakAt = now; }   // same hold as the display
     if (m.clipped) clipUntil = now + 1000;
     state.clip = now < clipUntil;
+    if (state.clip && !wasClip) state.clips++;
+    wasClip = state.clip;
+    if (m.bands) state.bands = m.bands;
+    loudFeed(m.ms, dt);
+    if (now - lastLoud >= 250) { lastLoud = now; loudUpdate(); }
+    sessionT += dt;
+    if (state.level > SILENT_DB) talkT += dt;
+    state.talk = Math.floor(talkT); state.session = Math.floor(sessionT);
     $('vLevel').textContent = `${state.level.toFixed(1)} dBFS`;
-    $('vPeak').textContent = `${state.peak.toFixed(1)} dBFS${state.clip ? ' · CLIPPING' : ''}`;
+    $('vPeak').textContent = `${state.peak.toFixed(1)} dBFS${state.clip ? ' · CLIPPING' : ''}${state.clips ? ` · ${state.clips} clip${state.clips === 1 ? '' : 's'}` : ''}`;
+    $('vLufs').textContent = `${fmtLufs(state.lufsS)} LUFS short-term · ${fmtLufs(state.lufsI)} session`;
+    $('vTalk').textContent = `${fmtDur(state.talk)} of ${fmtDur(state.session)}`;
     $('vRate').textContent = state.rate ? `${state.rate} Hz` : '–';
     $('vDev').textContent = state.name || '–';
     if (state.level > SILENT_DB || !loudAt) loudAt = now;
     state.silent = now - loudAt > 3000;
     $('vSig').textContent = state.silent ? 'no signal (silent for 3 s or more)' : 'present';
   } else { state.live = false; state.silent = false; loudAt = 0; $('vSig').textContent = '–'; }
-  drawDial(ctx, state);
+  (DRAW[face] || drawDial)(ctx, state);
   sendFrame(now);
   requestAnimationFrame(frame);
 }

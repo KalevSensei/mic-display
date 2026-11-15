@@ -19,14 +19,18 @@ from PIL import Image, ImageDraw, ImageFont
 
 ASCII = "".join(chr(c) for c in range(32, 127))
 LATIN1 = "".join(chr(c) for c in range(0xA0, 0x100))   # device names can hold letters like ä, ö, å
+DASHES = "\u2013\u2212\u221e"   # en dash, minus sign, infinity: "–∞", "−18.4"
 
-# name, file, px (page px x 466/240), characters
+# name, file, px (page px x 466/240 where the page draws the same thing), characters
 FONTS = [
-    ("F_SMALL", "IBMPlexSans-Medium.ttf", 21, ASCII + LATIN1),   # page 11 px: tick labels, dBFS, rate, device name
-    ("F_MSG", "IBMPlexSans-Medium.ttf", 31, ASCII),              # page 16 px 500: "waiting for PC"
-    ("F_WARN", "IBMPlexSans-SemiBold.ttf", 31, ASCII),           # page 16 px 600: "NO SIGNAL"
-    ("F_CHIP", "IBMPlexSans-SemiBold.ttf", 27, ASCII),           # page 14 px 600: "REC" / "LIVE"
-    ("F_BIG", "IBMPlexMono-SemiBold.ttf", 50, " -0123456789–∞"),   # page 26 px mono 600: the dB number, "–∞"
+    ("F_SMALL", "IBMPlexSans-Medium.ttf", 21, ASCII + LATIN1 + DASHES),   # page 11 px: tick labels, dBFS, rate, device name, hints
+    ("F_MSG", "IBMPlexSans-Medium.ttf", 31, ASCII + LATIN1 + DASHES),     # page 16 px 500: "waiting for PC", session lines, device names in settings
+    ("F_WARN", "IBMPlexSans-SemiBold.ttf", 31, ASCII),           # page 16 px 600: "NO SIGNAL"; settings titles, "Done"
+    ("F_CHIP", "IBMPlexSans-SemiBold.ttf", 27, ASCII),           # page 14 px 600: "REC" / "LIVE" (parked, MD-001)
+    ("F_BIG", "IBMPlexMono-SemiBold.ttf", 50, " -0123456789–−∞"),   # page 26 px mono 600: the dB number, "–∞"
+    ("F_LABEL", "IBMPlexSans-SemiBold.ttf", 19, ASCII),          # page 10 px 600: tracked capitals (face and settings category labels)
+    ("F_VALUE", "IBMPlexSans-SemiBold.ttf", 44, ASCII),          # settings values in words ("Muted", "15 min")
+    ("F_HUGE", "IBMPlexMono-SemiBold.ttf", 82, " -.0123456789:%–−∞"),   # page 42 px mono 600: LUFS, talk time, clock, settings numbers
 ]
 
 
