@@ -21,7 +21,7 @@
 //   arduino-cli FQBN: esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=opi,CDCOnBoot=cdc
 //
 // Protocol, page -> display, one line per frame (unchanged):
-//   S,<level dB x10>,<peak dB x10>,<clip 0|1>,<rec 0|1|2>,<sample rate Hz>,<device name>\n
+//   S,<level dB x10>,<peak dB x10>,<clip 0|1>,<reserved, always 0 (was the recording-status field; parked as open item MD-001)>,<sample rate Hz>,<device name>\n
 
 #include <Arduino_GFX_Library.h>
 #include <esp_heap_caps.h>
@@ -227,14 +227,6 @@ void draw() {
     else snprintf(t, sizeof t, "%d", (int)floorf(level + 0.5f));   // JavaScript Math.round
     centered(F_BIG, t, C, C + 50 * K, TEXT);
     centered(F_SMALL, "dBFS", C, C + 64 * K, DIM);
-  }
-  // recording chip on top, between the -36 and -24 labels: "● REC" / "● LIVE"
-  if (rec) {
-    const char *t = rec == 2 ? "LIVE" : "REC";
-    float dotR = 4.2f * K, gap = textWidth(F_CHIP, " "), w = 2 * dotR + gap + textWidth(F_CHIP, t);
-    float x = C - w / 2, base = 44 * K;
-    disc(x + dotR, base - 5 * K, dotR, RED);
-    textAt(F_CHIP, t, x + 2 * dotR + gap, (int)lroundf(base), RED);
   }
   // footer: sample rate and device
   if (rate) { char t[16]; snprintf(t, sizeof t, rate % 1000 ? "%.1f kHz" : "%.0f kHz", rate / 1000.0); centered(F_SMALL, t, C, 196 * K, DIM); }

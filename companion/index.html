@@ -75,17 +75,7 @@
         <dt>Sample rate</dt><dd id="vRate">–</dd>
         <dt>Device</dt><dd id="vDev">–</dd>
         <dt>Signal</dt><dd id="vSig">–</dd>
-        <dt>Recording</dt><dd id="vRec">OBS not connected</dd>
       </dl>
-    </div>
-    <div class="card">
-      <h2>OBS recording status (optional)</h2>
-      <label for="obsUrl">OBS WebSocket address</label>
-      <input id="obsUrl" value="ws://127.0.0.1:4455" autocomplete="off">
-      <label for="obsPw">Password (OBS → Tools → WebSocket Server Settings)</label>
-      <input id="obsPw" type="password" autocomplete="off">
-      <div class="row" style="margin-top:12px"><button class="btn" id="obsConnect">Connect OBS</button></div>
-      <p class="note" id="obsNote"></p>
     </div>
   </section>
 </main>
@@ -143,8 +133,6 @@ function drawDial(ctx, s) {
     ctx.fillText(s.level <= MIN_DB ? '–∞' : Math.round(s.level).toString(), c, c + 50);
     ctx.fillStyle = COL.dim; ctx.font = '500 11px "IBM Plex Sans", sans-serif'; ctx.fillText('dBFS', c, c + 64);
   }
-  // recording chip on top, between the -36 and -24 labels
-  if (s.rec) { ctx.fillStyle = COL.red; ctx.font = '600 14px "IBM Plex Sans", sans-serif'; ctx.fillText(s.rec === 2 ? '● LIVE' : '● REC', c, 44); }
   // footer: rate and device
   ctx.fillStyle = COL.dim; ctx.font = '500 11px "IBM Plex Sans", sans-serif';
   const rate = s.rate ? `${(s.rate / 1000).toFixed(s.rate % 1000 ? 1 : 0)} kHz` : '';
@@ -154,7 +142,7 @@ function drawDial(ctx, s) {
 
 // ---------- state ----------
 const $ = (id) => document.getElementById(id);
-const state = { live: false, level: MIN_DB, peak: MIN_DB, clip: false, rec: 0, silent: false, rate: 0, name: '' };
+const state = { live: false, level: MIN_DB, peak: MIN_DB, clip: false, silent: false, rate: 0, name: '' };
 const SILENT_DB = -55;   // below this for 3 s = NO SIGNAL, same rule as the firmware
 let peakAt = 0, clipUntil = 0, needle = MIN_DB, loudAt = 0;
 let audio = null, analyser = null, buf = null, demo = false, demoT = 0;
@@ -244,44 +232,10 @@ let lastSend = 0;
 function sendFrame(now) {
   if (!writer || now - lastSend < 50) return; lastSend = now;   // 20 frames a second
   const name = (state.name || '').replace(/[,\r\n]/g, ' ').slice(0, 22);
-  const line = `S,${Math.round(state.level * 10)},${Math.round(state.peak * 10)},${state.clip ? 1 : 0},${state.rec},${state.rate | 0},${name}\n`;
+  const line = `S,${Math.round(state.level * 10)},${Math.round(state.peak * 10)},${state.clip ? 1 : 0},0,${state.rate | 0},${name}\n`;
   writer.write(new TextEncoder().encode(line)).catch(() => {});
 }
 $('connect').onclick = connectSerial;
-
-// ---------- OBS (obs-websocket v5) ----------
-const b64sha = async (s) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))));
-let obs = null;
-$('obsUrl').value = store.get('obs.url') || $('obsUrl').value;
-$('obsConnect').onclick = () => {
-  if (obs) obs.close();
-  const url = $('obsUrl').value.trim(); store.set('obs.url', url);
-  let recording = false, streaming = false;
-  const upd = () => { state.rec = streaming ? 2 : recording ? 1 : 0; $('vRec').textContent = streaming ? 'streaming' : recording ? 'recording' : 'not recording'; };
-  try { obs = new WebSocket(url); } catch (e) { $('obsNote').innerHTML = `<span class="err">${e.message}</span>`; return; }
-  obs.onmessage = async (ev) => {
-    const m = JSON.parse(ev.data);
-    if (m.op === 0) {
-      const d = { rpcVersion: 1, eventSubscriptions: 64 };
-      if (m.d.authentication) { const { challenge, salt } = m.d.authentication; d.authentication = await b64sha((await b64sha($('obsPw').value + salt)) + challenge); }
-      obs.send(JSON.stringify({ op: 1, d }));
-    } else if (m.op === 2) {
-      $('obsNote').textContent = 'OBS connected.';
-      obs.send(JSON.stringify({ op: 6, d: { requestType: 'GetRecordStatus', requestId: 'rec' } }));
-      obs.send(JSON.stringify({ op: 6, d: { requestType: 'GetStreamStatus', requestId: 'str' } }));
-    } else if (m.op === 7) {
-      if (m.d.requestId === 'rec') recording = !!m.d.responseData?.outputActive;
-      if (m.d.requestId === 'str') streaming = !!m.d.responseData?.outputActive;
-      upd();
-    } else if (m.op === 5) {
-      if (m.d.eventType === 'RecordStateChanged') recording = !!m.d.eventData.outputActive;
-      if (m.d.eventType === 'StreamStateChanged') streaming = !!m.d.eventData.outputActive;
-      upd();
-    }
-  };
-  obs.onclose = (ev) => { state.rec = 0; $('vRec').textContent = 'OBS not connected';
-    $('obsNote').innerHTML = ev.code === 4009 ? '<span class="err">Wrong OBS password.</span>' : '<span class="err">OBS is not reachable. Is OBS open with the WebSocket server on?</span>'; obs = null; };
-};
 
 // ---------- loop ----------
 const ctx = $('dial').getContext('2d');
