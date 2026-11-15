@@ -16,7 +16,8 @@ Living plan, updated after every step. Physical steps are ticked only when physi
 ## M03 · Flash the display and test it on the desk
 - status: firmware ported to the bought board (Waveshare ESP32-S3-Touch-AMOLED-1.75) and **compiles with zero errors** (verified 2026-11-15 with arduino-cli, command below). **Not yet run on the board** (board not received).
 - why: proves the display draws the same dial as the page, fed over the USB cable.
-- nothing to wire: board and screen are one piece; one USB-C data cable to the PC powers it and carries the data.
+- nothing to wire: board and screen are one piece; one USB-C data cable to the PC powers it and carries the data. No cable comes in the box.
+- who does it: Kalev plugs the board into his PC; the agent uploads the firmware with the arduino-cli already installed and verified (command at the end of this step) and opens the companion page. The Arduino IDE steps below are only the fallback and the record for anyone rebuilding it.
 - sources: Waveshare wiki https://www.waveshare.com/wiki/ESP32-S3-Touch-AMOLED-1.75 and Waveshare's demo code https://github.com/waveshareteam/ESP32-S3-Touch-AMOLED-1.75 (pins from `examples/arduino/libraries/Mylibrary/pin_config.h`, display start-up from `examples/arduino/01_HelloWorld`, core version and flash settings from `docs/getting-started.md`). The wiki still names esp32 core 3.1.0; Waveshare's repository (updated Aug 2026) validates 3.3.10, which is used here.
 
 Versions: Arduino IDE 2, board package **esp32 by Espressif Systems 3.3.10**, library **GFX Library for Arduino 1.6.4** (moononournation) in **Waveshare's copy**. The 1.6.4 from the Arduino Library Manager does not compile on core 3.3.10 (checked 2026-11-15); Waveshare's copy carries the fix. No other library is needed (touch, power chip and sound are not used).
