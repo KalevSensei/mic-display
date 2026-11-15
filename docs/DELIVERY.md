@@ -34,3 +34,4 @@ Pi Hut's delivery page now says: "the duty-free exemption for imports under €1
 
 ## Log
 - 14 Nov 2026: order confirmed (email 17:30 UTC). Not dispatched yet (weekend). Watch task created.
+- 15 Nov 2026 (Sun, run): Gmail checked (account verified). Only the 14 Nov confirmation and two login-code emails from Pi Hut; no dispatch email, no DHL tracking number, no DHL mail. Status: awaiting dispatch Mon 16 Nov. No checkpoint due, nothing sent.
