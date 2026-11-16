@@ -23,5 +23,12 @@ Append-only. Items move to "Resolved" and never disappear. Codes: MD-nnn.
   - finds the board's USB port by itself, starts with Windows, sits in the notification area, and comes as one installer.
 - done when: on Kalev's PC, after one install and a restart, the display shows the level with no browser open, and all six PC settings on the display change Windows and follow changes made in Windows.
 
+### MD-003 · Clamp that holds the display on the classmate's mic arm (parked)
+- owner: US
+- status: parked 2026-11-16 (owner: "bank that open item 4 now i wanna finnisht he monitor stand").
+- what: design the clamp that fixes the display unit (MI-1 dovetail) to the arm's aluminium tube, sized from the tube's real diameter and length.
+- input received 2026-11-16: the arm assembly A00_Mikrofonivarsi_Yeti_2palkki_v2.SLDASM (in Kalev's Downloads). It contains no geometry: its 18 components are separate part files on the classmate's Google Drive (G:\Oma Drive\Mikrofonivarsi_Yeti_2palkki_v2\), and none of them were sent. The tube is P03_Varsiputki_2palkki_v2.SLDPRT (used twice). P05_Paa_2palkki_v2 (head) and P04_Kyynarnivel_2palkki_v2 (elbow) show where a clamp can sit.
+- needed to resume: P03_Varsiputki_2palkki_v2.SLDPRT, or better the whole Mikrofonivarsi_Yeti_2palkki_v2 folder or a SolidWorks Pack and Go zip, from the classmate. The reader C:\Users\kalev\tools\swprobe\probe.ps1 opens it in an invisible SolidWorks and lists every tube radius, axis and length.
+
 ## Resolved
 - none yet
