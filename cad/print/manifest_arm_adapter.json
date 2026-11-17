@@ -1,0 +1,68 @@
+[
+  {
+    "part": "D01_PETG_display_shell",
+    "volume_cm3": 4.93,
+    "petg_g_solid": 6.3,
+    "petg_g_2perim_15infill_est": 6.3,
+    "print_size_mm": [
+      53.4,
+      53.4,
+      14.6
+    ]
+  },
+  {
+    "part": "D02_PETG_display_back_MI1",
+    "volume_cm3": 9.44,
+    "petg_g_solid": 12.0,
+    "petg_g_2perim_15infill_est": 7.9,
+    "print_size_mm": [
+      53.4,
+      53.4,
+      8.3
+    ]
+  },
+  {
+    "part": "A10_PETG_arm_clamp_base_display_right",
+    "volume_cm3": 67.09,
+    "petg_g_solid": 85.2,
+    "petg_g_2perim_15infill_est": 34.2,
+    "print_size_mm": [
+      93.5,
+      142.9,
+      34.5
+    ]
+  },
+  {
+    "part": "A11_PETG_arm_clamp_pad",
+    "volume_cm3": 6.44,
+    "petg_g_solid": 8.2,
+    "petg_g_2perim_15infill_est": 4.1,
+    "print_size_mm": [
+      36.0,
+      29.5,
+      6.5
+    ]
+  },
+  {
+    "part": "A12_PETG_arm_MI1_tilt_block",
+    "volume_cm3": 5.83,
+    "petg_g_solid": 7.4,
+    "petg_g_2perim_15infill_est": 4.9,
+    "print_size_mm": [
+      26.0,
+      23.5,
+      30.0
+    ]
+  },
+  {
+    "part": "A10_PETG_arm_clamp_base_display_left",
+    "volume_cm3": 67.09,
+    "petg_g_solid": 85.2,
+    "petg_g_2perim_15infill_est": 34.2,
+    "print_size_mm": [
+      93.5,
+      142.9,
+      34.5
+    ]
+  }
+]

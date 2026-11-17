@@ -1,0 +1,56 @@
+{
+  "slicer": "PrusaSlicer 2.9.7 CLI, profile C:/Users/kalev/tools/PrusaSlicer/out/mk4s_hf04_petg_SPEED.ini (Original Prusa MK4S HF0.4 nozzle, 0.20mm SPEED @MK4S HF0.4, Prusament PETG @HF0.4: 2 perimeters, 15 % infill, 0.20 mm layers, supports off)",
+  "date": "2026-11-17",
+  "table": [
+    [
+      "D01",
+      "D01_PETG_display_shell",
+      "1",
+      "6.18",
+      "13m 35s"
+    ],
+    [
+      "D02",
+      "D02_PETG_display_back_MI1",
+      "1",
+      "7.30",
+      "17m 07s"
+    ],
+    [
+      "A10",
+      "A10_PETG_arm_clamp_base_display_right",
+      "1",
+      "33.05",
+      "1h 10m 00s"
+    ],
+    [
+      "A11",
+      "A11_PETG_arm_clamp_pad",
+      "1",
+      "3.89",
+      "8m 30s"
+    ],
+    [
+      "A12",
+      "A12_PETG_arm_MI1_tilt_block",
+      "1",
+      "4.61",
+      "26m 26s"
+    ],
+    [
+      "plate",
+      "MD_plate_display_and_arm_clamp_MK4S_HF04_PETG.bgcode",
+      "all 5",
+      "54.86",
+      "1h 54m 37s"
+    ],
+    [
+      "clamp",
+      "MD_plate_arm_clamp_MK4S_HF04_PETG.bgcode",
+      "3",
+      "41.43",
+      "1h 29m 11s"
+    ]
+  ],
+  "notes": "Per-part times are separate prints. 'plate' prints D01 + D02 + A10 (right) + A11 + A12 in one job; 'clamp' prints A10 (right) + A11 + A12 only (when D01/D02 are already printed). Plate figures are read from the .bgcode files' own metadata (MK4S, nozzle 0.4 high-flow, PETG). A10 left-hand version alone: 33.04 g, 1h 10m 06s. No support material generated on any part and no slicer support alert."
+}

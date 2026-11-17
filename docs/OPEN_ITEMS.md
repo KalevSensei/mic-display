@@ -23,9 +23,10 @@ Append-only. Items move to "Resolved" and never disappear. Codes: MD-nnn.
   - finds the board's USB port by itself, starts with Windows, sits in the notification area, and comes as one installer.
 - done when: on Kalev's PC, after one install and a restart, the display shows the level with no browser open, and all six PC settings on the display change Windows and follow changes made in Windows.
 
-### MD-003 · Clamp that holds the display on the classmate's mic arm (parked)
+### MD-003 · Clamp that holds the display on the classmate's mic arm (designed; physical fit open)
 - owner: US
-- status: parked 2026-11-16 (owner: "bank that open item 4 now i wanna finnisht he monitor stand").
+- status: designed in CAD 2026-11-17, all CAD checks pass (plan M06). Still open: print (Thu 19 Nov, JHC 3D printer 2, plan M05), buy the hardware (PARTS.md), fit it on Eino's arm and check it there (plan M06 steps 2–7). Moves to Resolved only when it holds the display on his arm. Earlier: parked 2026-11-16 (owner: "bank that open item 4 now i wanna finnisht he monitor stand"), resumed 2026-11-17.
+- 2026-11-17, design: U saddle under the upper arm bar (P03, 30 × 15 × 1.5 tube), A11 pad pushed by 2 × M4×10 set screws, display 110 mm out on the user's right beside the Yeti head, M5 friction hinge (tilt −3…103°), male MI-1 rail on A12. Files: `cad/source/md_arm_adapter.py`, `cad/print/A10…A12_*`, `cad/drawings/A10-A12_arm_adapter_drawings.pdf`, `cad/checks/arm_adapter_fit_check.json`. Eino's geometry was read from STEP copies in `cad/reference/arm_eino_step/` (git-ignored).
 - what: design the clamp that fixes the display unit (MI-1 dovetail) to the arm's aluminium tube, sized from the tube's real diameter and length.
 - input received 2026-11-16: the arm assembly A00_Mikrofonivarsi_Yeti_2palkki_v2.SLDASM (in Kalev's Downloads). It contains no geometry: its 18 components are separate part files on the classmate's Google Drive (G:\Oma Drive\Mikrofonivarsi_Yeti_2palkki_v2\), and none of them were sent. The tube is P03_Varsiputki_2palkki_v2.SLDPRT (used twice). P05_Paa_2palkki_v2 (head) and P04_Kyynarnivel_2palkki_v2 (elbow) show where a clamp can sit.
 - 2026-11-17: Eino sent a Pack and Go zip (A00_Mikrofonivarsi_Yeti_2palkki_v2_1.zip, 15 SolidWorks 2026 files incl. P03_Varsiputki, about 3.5 MB) as a share link on his LUT OneDrive (email "mic stand", 17 Nov 14:39, uni mail). Next: download it into cad/reference/arm/ (outside git), read the tube with the probe, design the clamp.

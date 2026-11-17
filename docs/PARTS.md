@@ -23,3 +23,19 @@ Why it works for this build: ESP32-S3 with native USB (the companion page talks 
 - Only if he does not already own one: a **USB-C data cable**, 1.5–2 m (a charge-only cable carries no data).
 - Upgraded build housing: **6 × M2 × 6 socket-head screws** (ISO 4762), 1.5 mm hex key. Three go into the board's own brass standoffs, three into the printed shell.
 - From JHC: thin hook-up wire, solder, heat-shrink (basic build only), PETG filament for the housing (about 30 g, 25 €/kg).
+
+## Stand adapter #1 for the classmate's arm (plan M06)
+
+Printed at JHC in PETG (plan M05 booking): A10 33.05 g, A11 3.89 g, A12 4.61 g as sliced (41.55 g; with D01 + D02 the whole plate is 54.86 g, about €1.40 of filament at 25 €/kg).
+
+Bought hardware, all at K-Rauta (physical shops across Finland). Prices and stock from k-rauta.fi on 17 Nov; pick the Lappeenranta shop in the site's store selector to see its shelf stock before going. The M5×25 is in only 3 K-Rauta shops: if Lappeenranta has none, any M5×25 socket head screw to ISO 4762 / DIN 912 (steel 8.8 or stainless A2/A4) from another shop with a physical store fits.
+
+| Qty | Part (any of these standards fits) | Buy | Price (17 Nov) |
+|---|---|---|---|
+| 2 | M4×10 set screw, hex socket, flat point, ISO 4026 / DIN 913 | K-Rauta "Pidätinruuvi Suki iso4026 Zn M4x10mm", product 502266493, sold singly, in 53 shops: https://www.k-rauta.fi/tuote/pidatinruuvi-suki-iso4026-zn-m4x10mm/4032526824033 | €0.20 each |
+| 2 | M4 hex nut, 7 mm across flats, 3.2 thick, ISO 4032 / DIN 934 | K-Rauta "Kuusiomutteri PROF DIN934 M4 sähkösinkitty 200kpl", product 502245931, 63 shops: https://www.k-rauta.fi/tuote/kuusiomutteri-prof-din934-m4-i8i-sahkosinkitty-200kpl/6438313620204 | €2.95 / 200 |
+| 1 | M5×25 socket head cap screw, ISO 4762 / DIN 912 | K-Rauta "Kuusiokoloruuvi Arctic Prosteel DIN912 AISI316 M5x25mm 12kpl", product 502578392, 3 shops: https://www.k-rauta.fi/tuote/kuusiokoloruuvi-arctic-marine-din912-aisi316-m5x25mm-12kpl/6430075570674 | €3.45 / 12 |
+| 1 | M5 nyloc nut, 8 mm across flats, DIN 985 / ISO 10511 | K-Rauta "Nylock-mutteri DIN 985 A2-70 M5 10kpl", product 501509129, 37 shops: https://www.k-rauta.fi/tuote/nylock-mutteri-din-985-a2-70-m5-10kpl/6438313204855 | €3.95 / 10 |
+| 1 | M5 washer 5.3 × 10 × 1, ISO 7089 / DIN 125 | K-Rauta "Aluslevy PROF DIN 125 rst A2 M5 10kpl", product 501509165, 44 shops: https://www.k-rauta.fi/tuote/aluslevy-prof-din-125-rst-a2-m5-10kpl/6438313204916 | €3.49 / 10 |
+
+Total at K-Rauta: €14.24. Keep the hinge screw at 25 mm: the CAD checks were run with it (it passes the nyloc by 2.9 mm and clears the display through the whole tilt); other lengths are not checked. Tools: 2 mm hex key (set screws, finger-tight on the short arm) and 4 mm hex key (hinge; the nyloc sits in a hex pocket and needs no spanner).

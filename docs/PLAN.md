@@ -82,9 +82,53 @@ Upload from the command line: the same with `upload -p COMx` in place of `compil
 - Files: `cad/source/md_model.py` (CadQuery; run with `C:/Users/kalev/tools/cadenv/Scripts/python.exe -I cad/source/md_model.py`), print files in `cad/print/` (STEP, STL, 3MF), checks in `cad/checks/fit_check.json` (all pass: zero overlap with Waveshare's board model). Board model: `cad/reference/` (download link in its README).
 - Still to do before printing: dimensioned drawings (PDF), shaded renders, then print a fit coupon of MI-1 and the display unit at JHC; fit the board when it arrives.
 
+### M05 print booking (booked 2026-11-17)
+- status: booked, not printed. Physical print: not done.
+- **JHC 3D printer 2** (Prusa MK4S, HF 0.4 nozzle), **Thu 19 Nov 10:00–14:00**, booked by Kalev in LUT Outlook (printer as attendee, event title = Kalev's uni email only). JHC is open Mon–Fri 8:30–18:00; the printers need a staff introduction first.
+- File: `cad/print/MD_plate_display_and_arm_clamp_MK4S_HF04_PETG.bgcode`: D01 + D02 + A10 (right-hand) + A11 + A12 on one plate, PETG, **1 h 54 min 37 s, 54.86 g** (read from the file's own metadata: MK4S, nozzle 0.4 high-flow, PETG). Sliced with PrusaSlicer 2.9.7 and the profile `C:/Users/kalev/tools/PrusaSlicer/out/mk4s_hf04_petg_SPEED.ini` (0.20 mm SPEED @MK4S HF0.4, Prusament PETG @HF0.4, 2 perimeters, 15 % infill); no supports generated. The editable plate is `cad/print/MD_plate_display_and_arm_clamp.3mf`.
+- If D01/D02 are printed separately: `cad/print/MD_plate_arm_clamp_MK4S_HF04_PETG.bgcode` prints only A10 + A11 + A12 (1 h 29 min 11 s, 41.43 g).
+- Per part (separate prints): D01 6.18 g 13 min 35 s; D02 7.30 g 17 min 07 s; A10 33.05 g 1 h 10 min 00 s; A11 3.89 g 8 min 30 s; A12 4.61 g 26 min 26 s (`cad/print/slice_summary_arm_adapter.json`). The slot leaves room to reprint any one part.
+1. Copy the .bgcode to a USB stick; at JHC load PETG, start the file on printer 2.
+2. When cool: take the parts off, check A10's U and slots are clean (no strings in the 3.3 mm finger slots or the nut slots).
+
 ## M06 · Stand adapter #1 for the classmate's microphone arm
-- status: after M05 is printed and works
-1. Measure his microphone arm where the display should sit (tube or arm section, width, the spot), then design the adapter: male side of the mounting interface on one face, a clamp for his arm on the other.
+- status: designed in CAD 2026-11-17 (digital), all CAD checks pass; printed: no; fitted on Eino's arm: no.
+- input: Eino's SolidWorks 2026 Pack and Go of the arm (A00_Mikrofonivarsi_Yeti_2palkki_v2), read as STEP copies in `cad/reference/arm_eino_step/` (git-ignored; his geometry stays out of git). The adapter sits on the upper arm bar P03_Varsiputki_2palkki_v2, a 30 × 15 × 1.5 rectangular tube.
+
+### Where it sits and why (traced in CAD through the arm's whole range)
+- Spot: on the upper bar next to the head; the clamp's head-side face is **72 mm from the head pivot bolt centre**. It covers no hole of the bar (14.9 mm clear of the nearest spring hole behind it, 28.8 mm of the next hole toward the head) and stays 9 mm clear of the spring plug P11 even on its furthest hole pair. Further back the spring plugs are in the way; further forward the head fork P05.
+- The display sits **110 mm out from the bar centreline on the user's right, beside the Yeti head, glass towards the user**, on a tilt hinge 22 mm back from the head pivot along the bar and 12.5 mm below the bar centre. It tilts −3…103° and holds any angle.
+- Nothing rises above the bar's top face: in the head joint's end pose (bar 28.5° down towards the head) with the Yeti tipped back 55–62°, the Yeti lies 1.3–4 mm above the bar. So the clamp hangs under the bar and its walls end 0.5 mm below the top face.
+- Seeing (eye position assumed as in docs/USE_SETUP.md): reading distance 389–401 mm, 16° off the glass axis. From the nominal eye, the whole glass is visible at bar angles −28.5°, −20°, 0° and +20° with the Yeti tilted up to ±10°; at ±20° tilt it is at least 98.4 % (worst: bar −28.5°). Over 27 eye positions (±40 mm sideways, 110–210 mm along, 330–380 mm up) the worst is 100 %. Rays traced through the head, Yeti, cradle, bar, clamp, bolts and the display's own lip.
+- Mic and monitor: the display top stays at most 41 mm above the head pivot, the Yeti body starts 144 mm above it, so the display stays out of the mouth-to-capsule path. The user sees the display at least 54° below horizontal; the monitor's lower edge is 28° below, so it never covers the monitor.
+- Motion: no contact with the head, tilt piece, Yeti cradle or Yeti over 117 head poses (bar −28.5…180° × Yeti tilt to its own limits); no contact with the lower bar, elbow, springs, spring plugs, swivel or desk clamp over 137 arm poses (shoulder −20…110°, elbow full circle, both display sides, 3 display tilts); closest at the head joint's stop 20.0 mm. The adapter never reaches the desk before Eino's own parts do.
+- Webcam: it sees D02's back and the cable, as on the desk foot (USE_SETUP check 1).
+
+### How it holds (no drilling, no crushing)
+- **A10 clamp saddle**: a U that hangs under the bar, plus the outrigger arm and a 3-finger tilt knuckle. **A11 pressure pad** sits between the bar and the U's far wall; **2 × M4×10 set screws** run in captive M4 nuts in that wall and push the pad. The bar is squeezed across its two 30 mm faces, only on 2.5 mm strips next to the tube's top and bottom walls (180 mm² per side), so the faces do not bend in the middle.
+- Snug (short arm of the 2 mm key, about 0.1 N·m per screw) = 250 N squeeze: 6.2 × the grip needed for a 20 N push along the bar; tube wall 2.3 MPa, face bending 11.6 MPa (34.7 MPa if over-tightened to 0.3 N·m; aluminium 6060-T5 yields at about 120). PETG: U wall 6.3 MPa, pad 7.1 MPa snug. Rotation round the bar is blocked by the U's shape; with only 10 % of the squeeze left it still carries itself, the display and a 5 N press (12.5 N of friction).
+- **A12 tilt block**: the male MI-1 rail (identical to the desk foot's, never changed) on one face, 2 fingers on the other. **M5×25 + washer + M5 nyloc** through the knuckle is a friction hinge: 1.31 N·m holding against 0.27 N·m from a 5 N press on the glass edge. The display slides down onto A12's rail and clicks, as on the desk foot; its weight keeps it on the rail stop in every reading pose.
+- Hardware and where to buy it: docs/PARTS.md.
+
+### Files
+- Model and checks: `cad/source/md_arm_adapter.py` (run with `C:/Users/kalev/tools/cadenv/Scripts/python.exe -I cad/source/md_arm_adapter.py`; about 1.5 min). Results: `cad/checks/arm_adapter_fit_check.json` (all pass).
+- Print files: `cad/print/A10_PETG_arm_clamp_base_display_right.*` (display on the user's right; `_left` is the mirror image), `A11_PETG_arm_clamp_pad.*`, `A12_PETG_arm_MI1_tilt_block.*` (STEP, STL, 3MF each), plates and slices as in M05 above, masses in `cad/print/manifest_arm_adapter.json`.
+- Drawings (4 × A3: assembly with parts list and steps, A10, A11 + A12, check list): `cad/drawings/A10-A12_arm_adapter_drawings.pdf` (made by `cad/source/md_arm_drawing.py`). Render: `cad/renders/A10_arm_adapter_on_arm.png`.
+
+### Steps
+1. Design the adapter from his arm's CAD: done 2026-11-17 (digital).
+2. Print A10, A11, A12 (M05 booking, Thu 19 Nov). Not done.
+3. Buy the hardware (PARTS.md). Not done.
+4. On the bench: push the 2 M4 nuts down into A10's slots and thread the set screws in from outside until they just show inside; put A12's 2 fingers into A10's slots, M5×25 + washer from the outer finger, nyloc into its hex pocket, tighten until the display holds any angle against a firm tap (about 1 N·m). Slide the display onto A12 until it clicks. Not done.
+5. On Eino's arm: measure the bar with calipers (30.0 × 15.0 expected) and look at its outer corner radius (the strips assume 1.5 or less). Saddle up under the bar, display arm on the user's right, head-side face 72 mm from the head pivot bolt centre; drop A11 in between the bar and the far wall, dimples towards the screws; set screws finger-tight on the short arm of the 2 mm key. Not done.
+6. Check on the arm: a firm push along the bar does not slide it; swing the arm through its whole range and fold the Yeti down onto the bar; sit in his seat and read the display; route the USB-C cable along the arm. Not done.
+7. One week later: re-snug the set screws once (PETG settles). Not done.
+
+### Settled only on the real arm or by Eino
+- The bar's real outside size, corner radius and material (aluminium assumed), and so the set-screw torque that holds without marking it.
+- His seat, eye height and distance (the CAD trace assumes the eye position in USE_SETUP).
+- The Yeti's side knobs (not in his CAD) and the real cable route.
+- Eino's OK for the spot and for a clamp on his bar.
 
 ## M07 · Hand-over to the classmate
 - status: later
@@ -102,4 +146,4 @@ Upload from the command line: the same with `upload -p COMx` in place of `compil
 - The companion page was tested with the demo signal; Kalev's own microphone is tested when he opens it (M01 step 2).
 
 ## Open questions
-- None for now. His microphone arm is measured at M06, after the display unit is printed.
+- None for now. The arm adapter (M06) is designed from his CAD; the facts only the real arm or Eino can settle are listed under M06.

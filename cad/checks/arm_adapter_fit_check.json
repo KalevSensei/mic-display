@@ -1,0 +1,430 @@
+{
+  "checks": [
+    {
+      "check": "A10 saddle and A11 pad (+z variant) vs bar and each other: no overlap",
+      "ok": true,
+      "detail": "0.0000 / 0.0000 mm3"
+    },
+    {
+      "check": "A10 saddle and A11 pad (-z variant) vs bar and each other: no overlap",
+      "ok": true,
+      "detail": "0.0000 / 0.0000 mm3"
+    },
+    {
+      "check": "clamp grips the bar's two 30 mm faces only on strips at |y| 11..13.5, next to the tube's top and bottom walls",
+      "ok": true,
+      "detail": "fixed wall 180.0 mm2, pad 180.0 mm2, design 180 mm2"
+    },
+    {
+      "check": "nothing of the clamp rises above the bar's top face (the Yeti can fold down onto the bar)",
+      "ok": true,
+      "detail": "clamp top 14.50, bar top 15.00"
+    },
+    {
+      "check": "pad has travel left after taking up both 0.1 mm gaps (> 0.5 mm)",
+      "ok": true,
+      "detail": "1.00 mm gap behind the pad"
+    },
+    {
+      "check": "clamp covers no hole of the bar and clears the spring plug in every hole pair",
+      "ok": true,
+      "detail": "14.85 mm to the 75 mm spring hole, 28.80 mm to the 160 mm hole, 9.0 mm to P11 on holes 55/75"
+    },
+    {
+      "check": "tube not crushed: snug squeeze stays under 1/3 of aluminium 6060-T5 yield (120 MPa), over-tightened still under yield",
+      "ok": true,
+      "detail": "snug 250 N: wall 2.3 MPa, face bending 11.6 MPa; 0.3 N m 750 N: 6.9 / 34.7 MPa"
+    },
+    {
+      "check": "PETG U wall and pad: snug under 10 MPa (long-term creep), over-tightened under 30 MPa (PETG yields at about 50)",
+      "ok": true,
+      "detail": "snug: wall root 6.3, pad 7.1 MPa; 0.3 N m: 18.8 / 21.3 MPa"
+    },
+    {
+      "check": "no slide under a 20 N push along the bar (friction 0.25 on 2 faces); rotation about the bar is form-locked by the U",
+      "ok": true,
+      "detail": "snug squeeze 250 N vs 40 N needed (x6.2)"
+    },
+    {
+      "check": "the clamp hangs under the bar on friction: with only 10 % of the snug squeeze left it still carries clamp + display (1 N) and a 5 N press",
+      "ok": true,
+      "detail": "12.5 N of friction at 10 % squeeze"
+    },
+    {
+      "check": "A12 rail is the MI-1 rail of md_model (same solid)",
+      "ok": true,
+      "detail": "rail volume inside A12 differs by 0.0000 mm3"
+    },
+    {
+      "check": "A12 (without the detent bump) vs display unit at home: no overlap",
+      "ok": true,
+      "detail": "0.0000 mm3"
+    },
+    {
+      "check": "detent bump is the only designed interference (same as the desk foot)",
+      "ok": true,
+      "detail": "10.894 mm3 nominal (bump into the groove); preload when home 0.15 mm"
+    },
+    {
+      "check": "display back face sits flat on A12's front face",
+      "ok": true,
+      "detail": "282 mm2 of contact beside the rail"
+    },
+    {
+      "check": "knuckle: A12 fingers sit in A10's slots with 0.10-0.20 mm each side",
+      "ok": true,
+      "detail": "[0.15, 0.15, 0.15, 0.15] mm"
+    },
+    {
+      "check": "display + A12 + USB plug tilt -3..103 deg without touching A10 (2 deg steps, both sides)",
+      "ok": true,
+      "detail": "0 mm3 at every step"
+    },
+    {
+      "check": "display slides on and off the rail (45 mm along the rail) at tilt 45, 64 and 90 deg without touching the clamp, bolts or bar",
+      "ok": true,
+      "detail": "clear at every 5 mm step"
+    },
+    {
+      "check": "tilt hinge holds a 5 N press on the glass edge (M5 nyloc snug, 20 % of its preload counted)",
+      "ok": true,
+      "detail": "1.31 N m holding vs 0.27 N m from the press"
+    },
+    {
+      "check": "no contact with the head, tilt piece, Yeti cradle or Yeti: bar -28.5..180 deg x Yeti tilt to its own limits (+-80 deg or where it lands on the bar), display tilt -3..103, both sides",
+      "ok": true,
+      "detail": "117 reachable head poses; 0 contacts"
+    },
+    {
+      "check": "at the head joint's stop the adapter keeps >= 5 mm from every head part",
+      "ok": true,
+      "detail": "20.0 mm A10 to P19 Yeti cradle (Yeti tilt 40)"
+    },
+    {
+      "check": "Eino's CAD pose is inside the swept range (sanity)",
+      "ok": true,
+      "detail": "CAD pose reachable"
+    },
+    {
+      "check": "no contact with the lower bar, elbow, spring plugs, springs, swivel or desk clamp anywhere in the arm's range (shoulder -20..110 deg x elbow full circle, both sides, 3 display tilts)",
+      "ok": true,
+      "detail": "137 reachable arm poses; 0 contacts"
+    },
+    {
+      "check": "user sees the whole glass from the nominal eye (>= 99 % with the Yeti tilted up to 10 deg, >= 95 % at 20 deg), bar -28.5..+20 deg; ray trace through head, Yeti, cradle, bar, clamp, bolts and the display's own lip",
+      "ok": true,
+      "detail": "bar -28.5: 100 % (98 % at Yeti tilt 20; worst of 27 eye positions 100 %), 389 mm, 16.4 deg off-axis; bar -20.0: 100 % (100 % at Yeti tilt 20; worst of 27 eye positions 100 %), 392 mm, 16.3 deg off-axis; bar 0.0: 100 % (100 % at Yeti tilt 20; worst of 27 eye positions 100 %), 398 mm, 16.1 deg off-axis; bar 20.0: 100 % (100 % at Yeti tilt 20; worst of 27 eye positions 100 %), 401 mm, 15.9 deg off-axis"
+    },
+    {
+      "check": "reading distance 300-450 mm (USE_SETUP)",
+      "ok": true,
+      "detail": "[389, 392, 398, 401] mm"
+    },
+    {
+      "check": "in every reading pose the display's weight presses it onto the MI-1 rail stop (its up axis points upward)",
+      "ok": true,
+      "detail": "[0.46, 0.45, 0.44, 0.42]"
+    },
+    {
+      "check": "display stays below the Yeti body, out of the mouth-to-capsule path (every bar angle and display tilt)",
+      "ok": true,
+      "detail": "display top at most 41 mm above the head pivot; Yeti body starts 144 mm above it; capsule about 280 mm"
+    },
+    {
+      "check": "display sits well under the user's lowest sight line to the monitor (>= 15 deg lower)",
+      "ok": true,
+      "detail": "display seen at least 54 deg below horizontal; monitor's lower edge at 28 deg"
+    },
+    {
+      "check": "M4x10 set screw: runs through the whole captive nut and its back end stays inside the wall (0.5-3 mm)",
+      "ok": true,
+      "detail": "3.40 mm in the nut zone, back end 1.60 mm inside the wall's outer face"
+    },
+    {
+      "check": "M5x25: passes the nyloc nut by >= 1.5 mm (nylon ring fully engaged)",
+      "ok": true,
+      "detail": "2.90 mm"
+    },
+    {
+      "check": "print plate: 5 parts inside the MK4S bed (250 x 210, 5 mm margin), >= 10 mm apart",
+      "ok": true,
+      "detail": "min gap 15.0 mm"
+    },
+    {
+      "check": "clamp-only plate: A10 + A11 + A12 inside the MK4S bed (250 x 210, 5 mm margin), >= 10 mm apart",
+      "ok": true,
+      "detail": "min gap 15.0 mm"
+    }
+  ],
+  "numbers": {
+    "contact_area_fixed_wall_mm2": 180.0,
+    "contact_area_pad_mm2": 180.0,
+    "clamp_top_below_bar_top_mm": 0.5,
+    "pad_travel_available_mm": 1.0,
+    "clear_to_hole_behind": 14.85,
+    "clear_to_hole_ahead": 28.8,
+    "clear_to_spring_plug_at_furthest_holes": 9.0,
+    "squeeze_snug_N": 250,
+    "squeeze_overtight_N": 750,
+    "tube_top_bottom_wall_compression_MPa_snug": 2.3,
+    "tube_face_bending_MPa_snug": 11.6,
+    "tube_face_bending_MPa_overtight": 34.7,
+    "petg_U_wall_root_bending_MPa_snug": 6.3,
+    "petg_U_wall_root_bending_MPa_overtight": 18.8,
+    "petg_pad_bending_MPa_snug": 7.1,
+    "petg_pad_bending_MPa_overtight": 21.3,
+    "squeeze_needed_for_20N_push_N": 40,
+    "grip_margin_snug": 6.2,
+    "detent_bump_overlap_nominal_mm3": 10.894,
+    "display_seat_area_on_A12_mm2": 281.6,
+    "knuckle_finger_clearance_each_side": [
+      0.15,
+      0.15,
+      0.15,
+      0.15
+    ],
+    "stop_contact_at_-7deg_mm3": 0.0,
+    "stop_contact_at_107deg_mm3": 7.63,
+    "hinge_holding_torque_Nm": 1.31,
+    "touch_torque_5N_at_glass_edge_Nm": 0.27,
+    "head_sweep_poses_reachable": 117,
+    "yeti_tilt_limits_by_bar_angle": {
+      "-28.5": [
+        61.9,
+        -80.0
+      ],
+      "-20": [
+        70.9,
+        -80.0
+      ],
+      "-10": [
+        80.0,
+        -80.0
+      ],
+      "0": [
+        80.0,
+        -80.0
+      ],
+      "15": [
+        80.0,
+        -80.0
+      ],
+      "30": [
+        80.0,
+        -80.0
+      ],
+      "45": [
+        80.0,
+        -80.0
+      ],
+      "60": [
+        80.0,
+        -80.0
+      ],
+      "75": [
+        80.0,
+        -80.0
+      ],
+      "90": [
+        80.0,
+        -80.0
+      ],
+      "120": [
+        80.0,
+        -80.0
+      ],
+      "150": [
+        80.0,
+        -80.0
+      ],
+      "180": [
+        80.0,
+        -80.0
+      ]
+    },
+    "closest_to_head_parts_at_head_stop": [
+      "20.0 mm A10 to P19 Yeti cradle (Yeti tilt 40)",
+      "20.0 mm A11 to P19 Yeti cradle (Yeti tilt 40)",
+      "23.9 mm A10 to P06 tilt piece (Yeti tilt 40)"
+    ],
+    "arm_sweep_poses_reachable": 137,
+    "poses_where_adapter_reaches_the_desk_before_eino_parts": 0,
+    "adapter_lowest_point_minus_head_lowest_point_worst_mm": -11.0,
+    "adapter_lowest_point_minus_head_lowest_point_best_mm": -87.8,
+    "view_from_user": [
+      {
+        "bar_deg": -28.5,
+        "tilt_set_deg": 91.0,
+        "off_axis_deg": 16.4,
+        "eye_distance_mm": 389,
+        "display_up_axis_vertical_component": 0.46,
+        "glass_visible_nominal_eye_yeti_tilt_-20": 0.984,
+        "glass_visible_nominal_eye_yeti_tilt_-10": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_0": 1.0,
+        "glass_visible_worst_of_27_eyes": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_10": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_20": 1.0
+      },
+      {
+        "bar_deg": -20.0,
+        "tilt_set_deg": 83.0,
+        "off_axis_deg": 16.3,
+        "eye_distance_mm": 392,
+        "display_up_axis_vertical_component": 0.45,
+        "glass_visible_nominal_eye_yeti_tilt_-20": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_-10": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_0": 1.0,
+        "glass_visible_worst_of_27_eyes": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_10": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_20": 1.0
+      },
+      {
+        "bar_deg": 0.0,
+        "tilt_set_deg": 64.0,
+        "off_axis_deg": 16.1,
+        "eye_distance_mm": 398,
+        "display_up_axis_vertical_component": 0.44,
+        "glass_visible_nominal_eye_yeti_tilt_-20": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_-10": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_0": 1.0,
+        "glass_visible_worst_of_27_eyes": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_10": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_20": 1.0
+      },
+      {
+        "bar_deg": 20.0,
+        "tilt_set_deg": 45.0,
+        "off_axis_deg": 15.9,
+        "eye_distance_mm": 401,
+        "display_up_axis_vertical_component": 0.42,
+        "glass_visible_nominal_eye_yeti_tilt_-20": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_-10": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_0": 1.0,
+        "glass_visible_worst_of_27_eyes": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_10": 1.0,
+        "glass_visible_nominal_eye_yeti_tilt_20": 1.0
+      }
+    ],
+    "display_top_above_head_pivot_max_mm": 40.6,
+    "yeti_body_bottom_above_head_pivot_mm": 144.0,
+    "display_seen_below_horizontal_min_deg": 53.8,
+    "monitor_lower_edge_below_horizontal_deg": 28.3,
+    "set_screw_back_end_recessed_mm": 1.6,
+    "set_screw_length_through_nut_mm": 3.4,
+    "M5x25_tip_past_nyloc_mm": 2.9,
+    "plate_min_gap_mm": 15.0,
+    "plate_boxes_xmin_ymin_xmax_ymax_h": {
+      "A10_PETG_arm_clamp_base_display_right": [
+        9.8,
+        33.5,
+        103.3,
+        176.4,
+        34.5
+      ],
+      "D01_PETG_display_shell": [
+        118.4,
+        33.5,
+        171.8,
+        86.9,
+        14.6
+      ],
+      "D02_PETG_display_back_MI1": [
+        186.8,
+        33.5,
+        240.2,
+        86.9,
+        8.3
+      ],
+      "A11_PETG_arm_clamp_pad": [
+        118.4,
+        101.9,
+        154.4,
+        131.4,
+        6.5
+      ],
+      "A12_PETG_arm_MI1_tilt_block": [
+        186.8,
+        101.9,
+        212.8,
+        125.4,
+        30.0
+      ]
+    },
+    "clamp_plate_min_gap_mm": 15.0
+  },
+  "assumptions": [
+    "user sits in line with the arm beyond the head (the Yeti's front faces along the arm in Eino's CAD: cradle knobs on the arm's z axis)",
+    "capsule at head-frame height 280 mm (upper part of the Yeti body, P09 spans 144..334); mouth level with it, 100-200 mm in front (USE_SETUP)",
+    "eyes 75 mm above the mouth and 10 mm behind it: eye x 110..210, y 330..380, sideways -40..+40 mm (head movement)"
+  ],
+  "parts": [
+    {
+      "part": "D01_PETG_display_shell",
+      "volume_cm3": 4.93,
+      "petg_g_solid": 6.3,
+      "petg_g_2perim_15infill_est": 6.3,
+      "print_size_mm": [
+        53.4,
+        53.4,
+        14.6
+      ]
+    },
+    {
+      "part": "D02_PETG_display_back_MI1",
+      "volume_cm3": 9.44,
+      "petg_g_solid": 12.0,
+      "petg_g_2perim_15infill_est": 7.9,
+      "print_size_mm": [
+        53.4,
+        53.4,
+        8.3
+      ]
+    },
+    {
+      "part": "A10_PETG_arm_clamp_base_display_right",
+      "volume_cm3": 67.09,
+      "petg_g_solid": 85.2,
+      "petg_g_2perim_15infill_est": 34.2,
+      "print_size_mm": [
+        93.5,
+        142.9,
+        34.5
+      ]
+    },
+    {
+      "part": "A11_PETG_arm_clamp_pad",
+      "volume_cm3": 6.44,
+      "petg_g_solid": 8.2,
+      "petg_g_2perim_15infill_est": 4.1,
+      "print_size_mm": [
+        36.0,
+        29.5,
+        6.5
+      ]
+    },
+    {
+      "part": "A12_PETG_arm_MI1_tilt_block",
+      "volume_cm3": 5.83,
+      "petg_g_solid": 7.4,
+      "petg_g_2perim_15infill_est": 4.9,
+      "print_size_mm": [
+        26.0,
+        23.5,
+        30.0
+      ]
+    },
+    {
+      "part": "A10_PETG_arm_clamp_base_display_left",
+      "volume_cm3": 67.09,
+      "petg_g_solid": 85.2,
+      "petg_g_2perim_15infill_est": 34.2,
+      "print_size_mm": [
+        93.5,
+        142.9,
+        34.5
+      ]
+    }
+  ],
+  "failed": [],
+  "runtime_s": 80
+}
