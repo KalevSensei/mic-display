@@ -2,3 +2,5 @@ cad/reference/*.stp
 cad/renders/*.svg
 cad/assembly/
 cad/reference/arm_eino/
+cad/reference/arm_eino_step/
+cad/reference/arm_eino_step/
