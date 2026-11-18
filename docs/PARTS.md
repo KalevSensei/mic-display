@@ -39,3 +39,20 @@ Bought hardware, all at K-Rauta (physical shops across Finland). Prices and stoc
 | 1 | M5 washer 5.3 × 10 × 1, ISO 7089 / DIN 125 | K-Rauta "Aluslevy PROF DIN 125 rst A2 M5 10kpl", product 501509165, 44 shops: https://www.k-rauta.fi/tuote/aluslevy-prof-din-125-rst-a2-m5-10kpl/6438313204916 | €3.49 / 10 |
 
 Total at K-Rauta: €14.24. Keep the hinge screw at 25 mm: the CAD checks were run with it (it passes the nyloc by 2.9 mm and clears the display through the whole tilt); other lengths are not checked. Tools: 2 mm hex key (set screws, finger-tight on the short arm) and 4 mm hex key (hinge; the nyloc sits in a hex pocket and needs no spanner).
+
+## Shopping list: every screw the display and the clamp need (Eino, 2026-11-18)
+
+Eino decided to buy the hardware as designed instead of changing the parts to fit other screws (after asking whether to redesign for M3: "so what need to buy"). Ask the JHC staff first whether they keep any of these; Eino was told JHC only has M3 (not checked).
+
+| Qty | Part | Goes into | Where |
+|---|---|---|---|
+| 6 | M2×6 socket head cap screw, ISO 4762 / DIN 912 | D01/D02: 3 into the board's brass standoffs, 3 into the printed shell | no shop named yet; any hardware shop with M2 |
+| 2 | M4×10 set screw, hex socket, flat point, ISO 4026 / DIN 913 | A10, push the A11 pad against the arm's tube | K-Rauta (table above) |
+| 2 | M4 hex nut, ISO 4032 / DIN 934 | A10 nut slots, for the set screws | K-Rauta |
+| 1 | M5×25 socket head cap screw, ISO 4762 / DIN 912, exactly 25 mm | A12 tilt hinge | K-Rauta (3 shops) or any DIN 912 M5×25 |
+| 1 | M5 nyloc nut, DIN 985 / ISO 10511 | A12 hinge, hex pocket | K-Rauta |
+| 1 | M5 washer 5.3 × 10 × 1, ISO 7089 / DIN 125 | under the hinge screw head | K-Rauta |
+
+Tools: 1.5 mm, 2 mm and 4 mm hex keys.
+
+Why not other screws (2026-11-18): the M2 size is fixed by the board's own standoffs; the hinge holds the display 110 mm out and was only checked with M5×25; an M3 or M6 version of A10/A12 means a redesign, new fit checks and a new print file. Eino's own screw stock (M6 and M8, no M2/M4/M5, no set screws) fits none of the holes.

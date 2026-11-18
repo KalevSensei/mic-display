@@ -11,6 +11,19 @@ The JHC 3D printers (LUT/LAB) are Prusa MK4S with the high-flow 0.4 nozzle, so t
 2. At the printer: load PETG, choose the file, print. Clean bed, no glue needed for PETG on the textured sheet.
 3. When it has cooled: take the parts off and check A10's slots are clean (no strings in the 3.3 mm finger slots or the nut slots).
 
+### Starting the print at JHC, step by step (Eino (agent), 2026-11-18)
+1. Before going: the printers need a staff introduction first. Put the `.bgcode` on a USB stick.
+2. At the printer: check it is an MK4S with the HF nozzle. If the printer warns that the nozzle or printer does not match the file, do not override it; ask the staff.
+3. Sheet: textured sheet = clean it, no glue. Smooth PEI sheet = a thin layer of glue stick first, so the PETG does not bond too hard.
+4. Load filament → PETG; at least about 70 g left on the spool.
+5. Choose the file, check the preview shows 5 parts, Print (it levels the bed itself).
+6. Watch the first layer (about 5 min): all 5 parts flat and stuck. If one lifts: stop, clean, restart.
+7. After about 2 h: let it cool, flex the sheet, parts off. Check A10's slots, then slide D02 onto A12 until it clicks.
+
+Slicing something yourself for JHC: pick the printer profile **Original Prusa MK4S HF0.4 nozzle** (or run `md slice`). A PrusaSlicer set up earlier for the standard "Original Prusa MK4S 0.4 nozzle" gives a file the HF printers warn about.
+
+Checked 2026-11-18 (Eino (agent)): the plate file's own metadata says MK4S, nozzle 0.4 high-flow, PETG, 1 h 54 min 37 s, 54.86 g, 5 objects (D01, D02, A10 right, A11, A12), 34.6 mm tall, footprint x 9.8–240.2 / y 33.5–176.4 mm inside the 250 × 210 bed. Its "support_material = 1" comes from the profile's enforcers-only setting (`support_material_auto = 0`); no supports are generated. Fit checks: 31/31 (clamp), 10/10 (display unit).
+
 Already have D01 and D02? Print **`MD_plate_arm_clamp_MK4S_HF04_PETG.bgcode`** instead (A10 + A11 + A12 only, 1 h 29 min, 41.4 g).
 
 ## Any other printer
