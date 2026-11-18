@@ -20,7 +20,7 @@ When the two disagree on something on Eino's arm, Eino's call stands. Agents act
 5. As needed: `docs/USE_SETUP.md` (who and what is where in real use), `docs/PARTS.md` (what to buy and where), `docs/PROTOCOL.md` (PC ↔ display serial lines), `docs/WIRING.md`, `docs/DELIVERY.md`, `README.md`.
 
 ## Current state (keep this section current in the same commit as any change to it)
-- 2026-11-18: repo moved to GitHub (private), Eino invited.
+- 2026-11-18: repo live on GitHub (private, KalevSensei/mic-display); Eino invited with write access and sent the handoff prompt (README > Start here with an agent).
 - Display unit D01/D02, mounting interface MI-1 and desk foot A00: designed, fit-checked against Waveshare's board model (`cad/checks/fit_check.json`).
 - Clamp A10–A12 for Eino's arm: designed and checked in CAD, 31 fit checks pass (`cad/checks/arm_adapter_fit_check.json`, plan M06). Not printed, not fitted.
 - Print: booked at JHC, **Thu 19 Nov 2026 10:00–14:00, 3D printer 2** (Prusa MK4S, HF 0.4 nozzle), file `cad/print/MD_plate_display_and_arm_clamp_MK4S_HF04_PETG.bgcode` (1 h 55 min, 54.9 g PETG).

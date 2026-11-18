@@ -8,3 +8,4 @@ One dated line per commit, newest at the bottom: `- YYYY-MM-DD · Who · what an
 - 2026-11-16 · Kalev (agent) · board dispatched; Eino's arm assembly received without part files (MD-003 parked).
 - 2026-11-17 · Kalev (agent) · Eino's Pack and Go received; clamp A10–A12 for his arm designed and checked in CAD (all checks pass); print booked at JHC Thu 19 Nov 10:00, printer 2; board collected.
 - 2026-11-18 · Kalev (agent) · repo prepared for GitHub: order, tracking, address and personal email removed from history; DELIVERY.md closed out as a summary; AGENTS.md is the single entry file; pinned environment and setup scripts for Windows and macOS; pre-commit and Claude hooks enforce a LOG line per commit.
+- 2026-11-18 · Kalev (agent) · repo live at github.com/KalevSensei/mic-display (private); Eino (laaksoneino) invited with write access; handoff prompt emailed to Eino from LUT Outlook (reply to his 11:02 message, sent 11:32).
