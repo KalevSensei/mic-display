@@ -1,6 +1,6 @@
 """Dimensioned drawing (PDF, 4 sheets A3) and shaded render (PNG) of stand adapter #1 (md_arm_adapter.py).
 
-Run after md_arm_adapter.py:  C:/Users/kalev/tools/cadenv/Scripts/python.exe -I cad/source/md_arm_drawing.py
+Run after md_arm_adapter.py:  scripts/md.ps1 drawing  (Windows)  or  scripts/md.sh drawing  (macOS)
 Writes cad/drawings/A10-A12_arm_adapter_drawings.pdf and cad/renders/A10_arm_adapter_on_arm.png.
 Everything renders off screen (matplotlib Agg, VTK off-screen); no window opens.
 """

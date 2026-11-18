@@ -4,3 +4,6 @@ cad/assembly/
 cad/reference/arm_eino/
 cad/reference/arm_eino_step/
 __pycache__/
+.venv/
+.DS_Store
+.claude/settings.local.json

@@ -1,0 +1,21 @@
+{
+  "python": "3.12",
+  "cad": { "cadquery": "2.8.0", "cadquery_ocp": "7.9.3.1.1" },
+  "slicer": {
+    "prusaslicer": "2.9.7",
+    "printer": "Original Prusa MK4S HF0.4 nozzle",
+    "print": "0.20mm SPEED @MK4S HF0.4",
+    "filament": "Prusament PETG @HF0.4"
+  },
+  "firmware": {
+    "arduino_cli": "1.5.1",
+    "esp32_core": "3.3.10",
+    "fqbn": "esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=opi,CDCOnBoot=cdc",
+    "waveshare_libraries": {
+      "repo": "https://github.com/waveshareteam/ESP32-S3-Touch-AMOLED-1.75.git",
+      "commit": "e4344e70c2fa78a13e8a06566507f1ba8af6672a",
+      "path": "examples/arduino/libraries",
+      "names": ["GFX_Library_for_Arduino", "SensorLib"]
+    }
+  }
+}

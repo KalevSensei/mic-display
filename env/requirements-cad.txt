@@ -1,0 +1,10 @@
+# Project Python (3.12): CAD, drawings, renders, firmware previews. Installed by the setup scripts with
+#   pip install -r env/requirements-cad.txt -c env/constraints-cad.txt
+# constraints-cad.txt pins every transitive package to the set the CAD checks were last run with.
+cadquery==2.8.0
+cadquery-ocp==7.9.3.1.1
+ezdxf==1.4.5
+matplotlib==3.11.2
+numpy==2.5.4
+pillow==13.0.0
+ziglang==0.17.1

@@ -1,0 +1,9 @@
+#!/bin/sh
+# After a pull: say when the environment definition changed, so the setup script is run again.
+changed="$(git diff --name-only ORIG_HEAD HEAD 2>/dev/null | grep -E '^(env/|scripts/(md\.py|setup-))')"
+if [ -n "$changed" ]; then
+  echo "mic-display: the environment changed ($changed)."
+  echo "  Run again: Windows  powershell -ExecutionPolicy Bypass -File scripts\setup-windows.ps1"
+  echo "             macOS    sh scripts/setup-macos.sh"
+fi
+exit 0

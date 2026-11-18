@@ -1,0 +1,36 @@
+#!/bin/sh
+# mic-display pre-commit: the repo is the project's memory, so every commit carries its own LOG line.
+# Installed by the setup scripts (git config core.hooksPath .githooks). Never bypass with --no-verify.
+fail=0
+staged="$(git diff --cached --name-only --diff-filter=ACMRD)"
+[ -z "$staged" ] && exit 0
+
+# 1. Every commit adds a dated line to docs/LOG.md naming who: "- YYYY-MM-DD · Name · what".
+if ! git diff --cached -U0 -- docs/LOG.md | grep -Eq '^\+- 20[0-9]{2}-[0-9]{2}-[0-9]{2} · [^·]+ · .+'; then
+  echo "pre-commit: add a line to docs/LOG.md in this commit, e.g."
+  echo "  - $(date +%Y-%m-%d) · Kalev · what changed and why (decision, measurement, test result)"
+  fail=1
+fi
+
+# 2. No contact details or secrets in what is added.
+added="$(git diff --cached -U0 --no-ext-diff -- . ':(exclude)*.step' ':(exclude)*.stl' ':(exclude)*.3mf' ':(exclude)*.bgcode' ':(exclude)*.png' ':(exclude)*.pdf' | grep '^+' | grep -v '^+++' | cut -c2-)"
+emails="$(printf '%s\n' "$added" | grep -Eo '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' | grep -Ev '(noreply|no-reply)@|@users\.noreply\.github\.com$|^contact@thepihut\.com$' | sort -u)"
+if [ -n "$emails" ]; then echo "pre-commit: email addresses in the change (no contact details in the repo):"; echo "$emails"; fail=1; fi
+if printf '%s\n' "$added" | grep -Eq '(ghp_|github_pat_|gho_)[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY'; then
+  echo "pre-commit: something that looks like a key or token is staged."; fail=1
+fi
+if printf '%s\n' "$added" | grep -Eq '\+358 ?[0-9][0-9 ]{6,}|\b04[0-9] ?[0-9]{3} ?[0-9]{4}\b'; then
+  echo "pre-commit: a phone number is staged."; fail=1
+fi
+
+# 3. Big files and other people's CAD stay out.
+for f in $staged; do
+  case "$f" in cad/reference/arm_eino*) echo "pre-commit: $f is Eino's arm CAD; it stays out of git unless Eino commits it himself (then use: ALLOW_ARM_CAD=1 git commit)"; [ "$ALLOW_ARM_CAD" = 1 ] || fail=1;; esac
+  if [ -f "$f" ]; then
+    size=$(wc -c < "$f")
+    if [ "$size" -gt 10000000 ]; then echo "pre-commit: $f is $((size/1000000)) MB; files over 10 MB stay out of git (link the source instead)"; fail=1; fi
+  fi
+done
+
+[ $fail -eq 0 ] || { echo "Commit stopped. Fix the above and commit again (see AGENTS.md > Working rules)."; exit 1; }
+exit 0

@@ -19,9 +19,9 @@ Frames (mm)
   base along the arm, y up (desk top at y = 0), z across the arm.
 
 The classmate's arm geometry is read from STEP copies of his SolidWorks Pack and Go
-(cad/reference/arm_eino_step/, git-ignored; regenerate with C:/Users/kalev/tools/swprobe/export.ps1).
+(cad/reference/arm_eino_step/, git-ignored; exported from Eino's SolidWorks files as STEP, see AGENTS.md).
 
-Run:  C:/Users/kalev/tools/cadenv/Scripts/python.exe -I cad/source/md_arm_adapter.py   (from the repo root)
+Run:  scripts/md.ps1 arm  (Windows)  or  scripts/md.sh arm  (macOS)
 Writes cad/print/A1*.{step,stl,3mf}, cad/print/MD_plate_display_and_arm_clamp.3mf (D01 + D02 + clamp),
 cad/print/MD_plate_arm_clamp.3mf (clamp only), cad/print/manifest_arm_adapter.json,
 cad/assembly/arm_adapter_on_bar.step and cad/checks/arm_adapter_fit_check.json; exit 1 on a failed check.
@@ -333,7 +333,7 @@ def load_arm():
     for k, n in names.items():
         f = ARM / f"{n}.step"
         if not f.exists():
-            sys.exit(f"missing {f}: export the classmate's arm with C:/Users/kalev/tools/swprobe/export.ps1 first")
+            sys.exit(f"missing {f}: export Eino's arm as STEP into cad/reference/arm_eino_step/ first (AGENTS.md)")
         out[k] = cq.importers.importStep(str(f)).val()
     return out
 

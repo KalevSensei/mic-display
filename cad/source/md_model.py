@@ -5,7 +5,7 @@ The board is Waveshare ESP32-S3-Touch-AMOLED-1.75 (cad/reference/ESP32-S3-Touch-
 Waveshare's own model). Its STEP has the screen normal along +y and the USB-C at -x; rotating it
 120 deg about (1,1,1) maps x->Y, y->Z, z->X, so the USB-C points down (-Y) and the screen faces +Z.
 
-Run:  C:/Users/kalev/tools/cadenv/Scripts/python.exe -I cad/source/md_model.py   (from the repo root)
+Run:  scripts/md.ps1 cad  (Windows)  or  scripts/md.sh cad  (macOS)
 Writes cad/print/*.{step,stl,3mf}, cad/assembly/*.step and cad/checks/fit_check.json; exit 1 on a failed check.
 """
 from pathlib import Path
