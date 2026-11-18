@@ -6,6 +6,8 @@ Uni engineering project (LAB, Engineering Curiosity) by Kalev Soininen with Eino
 
 **Everything about the project (rules, plan, environment, current state) is in [AGENTS.md](AGENTS.md).**
 
+**To 3D print it: [cad/print/README.md](cad/print/README.md)** (one ready plate for the JHC Prusa MK4S, plus STL/3MF files and settings for any printer).
+
 ## Start here with an agent
 Give your agent (Claude Code, Codex or similar) this prompt, unchanged:
 

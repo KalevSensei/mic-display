@@ -14,7 +14,7 @@ Living plan, updated after every step. Physical steps are ticked only when physi
 - why: the board is the only part JHC does not have.
 
 ## M03 · Flash the display and test it on the desk
-- status: **flashed 2026-11-18** on Kalev's laptop (COM3, 617,568 bytes written, hash verified). The board answers `C,hello,0.2.0`, `C,face,dial`, `C,peakhold,1` every 5 s and took 297 `S` lines of the laptop's real microphone (−96 to −56 dBFS) over 15 s with no reset (`firmware/tools/feed_mic.py COM3`, headless). Still to check by eye: the dial on the glass follows the voice (step 8), then M03b touch.
+- status: **flashed 2026-11-18** on Kalev's laptop (COM3, 617,568 bytes written, hash verified). The board answers `C,hello,0.2.0`, `C,face,dial`, `C,peakhold,1` every 5 s and took 297 `S` lines of the laptop's real microphone (−96 to −56 dBFS) over 15 s with no reset (`firmware/tools/feed_mic.py COM3`, headless). Checked by eye 2026-11-18, Kalev: "the metre was already working quite well" (needle follows the voice on the glass). Still to do: the companion page in Chrome (step 8 as written), then M03b touch; Kalev: "lets finnish that later".
 - why: proves the display draws the same dial as the page, fed over the USB cable.
 - nothing to wire: board and screen are one piece; one USB-C data cable to the PC powers it and carries the data. No cable comes in the box.
 - who does it: Kalev plugs the board into his PC; the agent uploads the firmware with `scripts/md.ps1 fw-flash` (Windows) or `scripts/md.sh fw-flash` (macOS), toolchain from the setup script (AGENTS.md > Environment), and opens the companion page (`md companion`). The Arduino IDE steps below are only the fallback and the record for anyone rebuilding it.
