@@ -4,6 +4,12 @@ A round 1.75" touch display that clips onto a microphone arm and shows the micro
 
 This file is the single entry point for people and agents (Codex reads `AGENTS.md`; Claude Code reads `CLAUDE.md`, which only imports this file). No handoff is needed: everything known about the project is in this repo. If it is not in the repo, it is not known.
 
+## Common asks: where the answer is
+- **"3D print it" / "find the print file and settings"**: `cad/print/README.md`. At JHC (Prusa MK4S, HF 0.4 nozzle) print `cad/print/MD_plate_display_and_arm_clamp_MK4S_HF04_PETG.bgcode` as is (all 5 parts, PETG, 1 h 55 min, 54.9 g). Any other printer: `cad/print/MD_plate_display_and_arm_clamp.3mf` with PETG, 0.20 mm layers, 2 walls, 15 % infill, no supports. Hardware to buy afterwards: `docs/PARTS.md`.
+- **"Flash the display"**: plan M03 in `docs/PLAN.md`; `md fw-flash`.
+- **"Run the companion page"**: `md companion`, then Chrome or Edge.
+- **"Fit the clamp on Eino's arm"**: plan M06 "Steps" in `docs/PLAN.md`, drawings in `cad/drawings/`.
+
 ## Who is who
 | Person | GitHub | Role | Decides |
 |---|---|---|---|
