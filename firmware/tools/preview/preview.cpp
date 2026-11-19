@@ -10,7 +10,10 @@ using namespace md;
 static FILE *listFile;
 static const char *outDir;
 
-static void shot(const char *file, const char *caption, uint32_t now) {
+static void shot(const char *file, const char *caption, uint32_t now, bool keepPage = false) {
+  float off = pageOff; bool pg = paging;
+  settle(now);   // the needle, bars and peak at rest on the values fed in
+  if (keepPage) { pageOff = off; paging = pg; }
   render(now);
   char path[512];
   snprintf(path, sizeof path, "%s/%s.ppm", outDir, file);
@@ -51,6 +54,7 @@ static void reset() {
   pin = PcSide(); pout = PcSide(); clientAt = 0; client[0] = 0;
   lastFrame = 0; loudAt = 0; heldPeak = MIN_DB; clip = 0; clipCount = 0; level = MIN_DB; nBands = 0; bandsAt = 0;
   loudnessAt = 0; clockValid = false; inSettings = false; pressed = Z_NONE; resetDoneAt = 0;
+  pageOff = 0; paging = false; animAt = 0;
   set = Settings();
 }
 
@@ -63,20 +67,30 @@ int main(int argc, char **argv) {
   listFile = fopen(lp, "w");
   const uint32_t T = 600000;   // ten minutes after start-up
 
-  // ---- faces (swipe left/right on the main screen); page dots show for 3 s after a swipe
+  // ---- faces, in swipe order; page dots show for 3 s after a swipe
   reset(); speech(T); clipCount = 2;
   heldPeak = -3.8f; clip = 0;
-  for (int f = 0; f < FACE_COUNT; f++) {
-    set.face = f; faceShownAt = T;
-    static const char *const FILES[] = {"f1_dial", "f2_bars", "f3_loudness", "f4_talk_time", "f5_clock"};
-    static const char *const CAPS[] = {"Face 1 · Needle dial", "Face 2 · Frequency bars", "Face 3 · Loudness", "Face 4 · Talk time", "Face 5 · Clock"};
-    shot(FILES[f], CAPS[f], T);
+  static const char *const FILES[FACE_COUNT] = {"f1_dial", "f2_rings", "f3_big", "f4_modular", "f5_bars", "f6_loudness", "f7_talk_time", "f8_clock"};
+  static const char *const CAPS[FACE_COUNT] = {"Face 1 · Dial", "Face 2 · Rings: level, peak, talk", "Face 3 · Big number", "Face 4 · Modular",
+                                               "Face 5 · Frequency bars", "Face 6 · Loudness", "Face 7 · Talk time", "Face 8 · Clock"};
+  for (int p = 0; p < FACE_COUNT; p++) {
+    set.face = FACE_ORDER[p]; faceShownAt = T;
+    shot(FILES[p], CAPS[p], T);
   }
   set.face = FACE_DIAL; faceShownAt = 0;
+  pageOff = -170; paging = true;
+  shot("f1_swipe_to_rings", "Swiping: the page follows the finger", T, true);
+  pageOff = 0; paging = false;
   feed("S,-31,-2,1,0,48000,Yeti Stereo Microphone", T); clipCount = 3;
-  shot("f1_dial_clipping", "Needle dial · clipping, dots hidden", T);
+  shot("f1_dial_clipping", "Dial · clipping, dots hidden", T);
+  set.face = FACE_RINGS;
+  shot("f2_rings_clipping", "Rings · clipping", T);
   reset();
   shot("f0_waiting_for_pc", "Any face · no PC sending", T);
+  reset(); speech(T);
+  feed("S,-700,-700,0,0,48000,Yeti Stereo Microphone", T - 10);
+  loudAt = T - 5000;   // 5 s of silence
+  shot("f1_dial_no_signal", "Dial · no signal (3 s of silence)", T);
 
   // ---- settings app: tap a face to open; swipe left/right between settings; Done / swipe down / 10 s closes
   static const char *const SF[IT_COUNT] = {"s01_mic_mute", "s02_input_device", "s03_input_volume", "s04_output_device", "s05_pc_volume",
@@ -89,6 +103,11 @@ int main(int argc, char **argv) {
     snprintf(file, sizeof file, "%s%s", SF[it], pc ? "_pc_app" : "");
     snprintf(cap, sizeof cap, "%d · %s%s", it + 1, TITLE[it], pc ? " · PC app connected" : "");
     shot(file, cap, T);
+    if (it == IT_MIC_VOL) {
+      pageOff = 150; paging = true;
+      shot("s03_swipe_back", "Settings · swiping back to Input device", T, true);
+      pageOff = 0; paging = false;
+    }
     if (it == IT_MIC_MUTE || it == IT_OUT_MUTE) {
       (it == IT_MIC_MUTE ? pin : pout).mute = 1;
       snprintf(file, sizeof file, "%s_pc_app_muted", SF[it]);

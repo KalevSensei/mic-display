@@ -3,243 +3,375 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mic display</title>
+<meta name="color-scheme" content="light dark">
+<title>Mic Display</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
 <style>
+  /* Apple's system colours (Human Interface Guidelines), light and dark; one typeface: Inter (as on the display). */
   :root {
-    --bg: #f4f5f7; --surface: #ffffff; --line: #d9dde3; --text: #14171c; --muted: #5a626e;
-    --accent: #1f6feb; --accent-text: #ffffff; --good: #1a7f37; --bad: #cf222e;
+    --bg: #f2f2f7; --card: #ffffff; --sep: #c6c6c8; --text: #000000; --second: #6e6e73; --tert: #aeaeb2;
+    --accent: #007aff; --accent-text: #ffffff; --fill: rgba(120, 120, 128, .12); --fill-p: rgba(120, 120, 128, .24);
+    --green: #34c759; --red: #ff3b30; --bezel: #1c1c1e; --shadow: 0 18px 40px rgba(0, 0, 0, .18);
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #0d0f12; --surface: #161a20; --line: #2a3039; --text: #e8ebef; --muted: #9aa3ae;
-      --accent: #4c8dff; --accent-text: #0d0f12; --good: #3fb950; --bad: #ff6b6b; }
+    :root { --bg: #000000; --card: #1c1c1e; --sep: #38383a; --text: #ffffff; --second: #8e8e93; --tert: #48484a;
+      --accent: #0a84ff; --fill: rgba(120, 120, 128, .24); --fill-p: rgba(120, 120, 128, .36);
+      --green: #30d158; --red: #ff453a; --bezel: #2c2c2e; --shadow: none; }
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--text); }
-  body { font: 16px/1.5 "IBM Plex Sans", "Segoe UI", sans-serif; }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 16px 48px; display: grid; grid-template-columns: 1fr; gap: 24px; }
-  @media (min-width: 860px) { .wrap { grid-template-columns: 520px 1fr; align-items: start; } }
-  h1 { font-size: 28px; line-height: 1.2; margin: 0 0 4px; font-weight: 600; text-wrap: balance; }
-  .lead { color: var(--muted); margin: 0 0 20px; }
-  .stage { background: #000; border-radius: 16px; padding: 24px; display: grid; place-items: center; }
-  canvas#dial { width: min(480px, 100%); aspect-ratio: 1; border-radius: 50%; display: block; }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
-  .card + .card { margin-top: 16px; }
-  .card h2 { font-size: 18px; margin: 0 0 12px; font-weight: 600; }
-  .btn { min-height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
-    color: var(--text); font: inherit; font-weight: 500; cursor: pointer; }
-  .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-  .btn:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-  .btn[disabled] { opacity: .5; cursor: default; }
-  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  label { display: block; font-size: 14px; color: var(--muted); margin: 12px 0 4px; }
-  select, input { width: 100%; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line);
-    background: var(--bg); color: var(--text); font: inherit; }
-  select[disabled] { opacity: .7; }
-  dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; }
-  dt { color: var(--muted); font-size: 14px; }
-  dd { margin: 0; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-  .note { font-size: 14px; color: var(--muted); margin: 10px 0 0; }
-  .err { color: var(--bad); }
+  body { font: 17px/1.41 Inter, -apple-system, system-ui, sans-serif; font-optical-sizing: auto; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 40px 16px 56px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  @media (min-width: 900px) { .wrap { grid-template-columns: 480px minmax(0, 1fr); gap: 48px; align-items: start; } .hero { position: sticky; top: 40px; } }
+  h1 { font-size: 34px; line-height: 1.12; letter-spacing: -0.02em; margin: 0 0 32px; font-weight: 700; text-wrap: balance; }
+  .hero { display: grid; justify-items: center; gap: 20px; }
+  .device { width: min(420px, 100%); aspect-ratio: 1; border-radius: 50%; padding: 12px; background: var(--bezel); box-shadow: var(--shadow); }
+  canvas#dial { width: 100%; height: 100%; border-radius: 50%; display: block; background: #000; touch-action: pan-y; cursor: grab; }
+  canvas#dial.locked { cursor: default; }
+  .pager { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px; width: min(420px, 100%); }
+  .face-name { text-align: center; font-weight: 600; font-size: 17px; }
+  .dots { display: flex; justify-content: center; gap: 8px; margin-top: 6px; }
+  .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--tert); }
+  .dots i.on { background: var(--text); }
+  .hint { color: var(--second); font-size: 15px; text-align: center; margin: 0; min-height: 21px; }
+  .icon-btn { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--fill); color: var(--text); display: grid; place-items: center; cursor: pointer; }
+  .icon-btn:hover { background: var(--fill-p); }
+  .icon-btn[disabled] { opacity: .35; cursor: default; }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .group { margin: 0 0 32px; }
+  .group h2 { font-size: 13px; line-height: 18px; font-weight: 500; color: var(--second); text-transform: uppercase; letter-spacing: .02em; margin: 0 0 8px 16px; }
+  .card { background: var(--card); border-radius: 12px; overflow: hidden; }
+  .card .pad { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btn { min-height: 44px; padding: 0 20px; border-radius: 22px; border: 0; background: var(--fill); color: var(--accent);
+    font: inherit; font-weight: 600; cursor: pointer; }
+  .btn:hover { background: var(--fill-p); }
+  .btn-primary { background: var(--accent); color: var(--accent-text); }
+  .btn-primary:hover { background: var(--accent); filter: brightness(1.08); }
+  .btn[disabled] { opacity: .45; cursor: default; }
+  .btn:focus-visible, .icon-btn:focus-visible, select:focus-visible, canvas:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .field { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 0 16px; min-height: 48px; border-top: 1px solid var(--sep); }
+  .field label { color: var(--text); }
+  select { width: 100%; min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: var(--second); font: inherit; text-align: right; text-align-last: right; cursor: pointer; }
+  select[disabled] { cursor: default; }
+  .list { margin: 0; }
+  .list > div { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 12px 16px; }
+  .list > div + div { border-top: 1px solid var(--sep); margin-left: 16px; padding-left: 0; }
+  .list dt { color: var(--text); }
+  .list dd { margin: 0; text-align: right; color: var(--second); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .status { display: flex; align-items: center; gap: 8px; color: var(--second); font-size: 15px; margin: 12px 0 0; }
+  .status i { width: 8px; height: 8px; border-radius: 50%; background: var(--tert); flex: none; }
+  .status.ok i { background: var(--green); }
+  .err { color: var(--red); }
+  .note { font-size: 15px; color: var(--second); margin: 12px 0 0; }
+  .note:empty { display: none; }
 </style>
 </head>
 <body>
 <main class="wrap">
-  <section>
-    <h1>Mic display</h1>
-    <p class="lead">The screen the stand display shows, live from this computer's microphone.</p>
-    <div class="stage"><canvas id="dial" width="240" height="240" aria-label="Stand display preview"></canvas></div>
+  <section class="hero" aria-label="Display preview">
+    <h1 style="justify-self: start; margin-bottom: 8px">Mic Display</h1>
+    <div class="device"><canvas id="dial" width="932" height="932" tabindex="0" aria-label="The stand display's face, live"></canvas></div>
+    <div class="pager">
+      <button class="icon-btn" id="prev" aria-label="Previous face"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.5 5.5 9l5.5 5.5"/></svg></button>
+      <div><div class="face-name" id="faceName">Dial</div><div class="dots" id="dots" aria-hidden="true"></div></div>
+      <button class="icon-btn" id="next" aria-label="Next face"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5 12.5 9 7 14.5"/></svg></button>
+    </div>
+    <p class="hint" id="faceNote">Swipe the face, or the display itself once it is connected.</p>
   </section>
   <section>
-    <div class="card">
+    <div class="group">
       <h2>Microphone</h2>
-      <div class="row">
-        <button class="btn btn-primary" id="start">Start microphone</button>
-        <button class="btn" id="demo">Demo signal</button>
+      <div class="card">
+        <div class="pad">
+          <div class="row">
+            <button class="btn btn-primary" id="start">Start microphone</button>
+            <button class="btn" id="demo">Demo signal</button>
+          </div>
+          <p class="note" id="micNote"></p>
+        </div>
+        <div class="field"><label for="device">Input</label><select id="device" disabled><option>Start the microphone first</option></select></div>
       </div>
-      <label for="device">Input</label>
-      <select id="device" disabled><option>Start the microphone first</option></select>
-      <p class="note" id="micNote"></p>
     </div>
-    <div class="card">
+    <div class="group">
       <h2>Stand display</h2>
-      <div class="row"><button class="btn" id="connect">Connect display</button></div>
-      <p class="note" id="serialNote">Plug the display into USB, then connect and pick its port.</p>
-      <label for="face">Face</label>
-      <select id="face">
-        <option value="dial">Needle dial</option>
-        <option value="bars">Frequency bars</option>
-        <option value="loudness">Loudness</option>
-        <option value="talk">Talk time</option>
-        <option value="clock">Clock</option>
-      </select>
-      <p class="note" id="faceNote">Swipe the display left or right to change it; this preview follows.</p>
+      <div class="card"><div class="pad">
+        <button class="btn btn-primary" id="connect">Connect display</button>
+        <p class="status" id="serialNote"><i></i><span>Plug the display into USB, then connect and pick its port.</span></p>
+      </div></div>
     </div>
-    <div class="card">
+    <div class="group">
       <h2>Now</h2>
-      <dl>
-        <dt>Level</dt><dd id="vLevel">–</dd>
-        <dt>Peak</dt><dd id="vPeak">–</dd>
-        <dt>Loudness</dt><dd id="vLufs">–</dd>
-        <dt>Talk time</dt><dd id="vTalk">–</dd>
-        <dt>Sample rate</dt><dd id="vRate">–</dd>
-        <dt>Device</dt><dd id="vDev">–</dd>
-        <dt>Signal</dt><dd id="vSig">–</dd>
-      </dl>
+      <div class="card">
+        <dl class="list">
+          <div><dt>Level</dt><dd id="vLevel">–</dd></div>
+          <div><dt>Peak</dt><dd id="vPeak">–</dd></div>
+          <div><dt>Loudness</dt><dd id="vLufs">–</dd></div>
+          <div><dt>Talk time</dt><dd id="vTalk">–</dd></div>
+          <div><dt>Sample rate</dt><dd id="vRate">–</dd></div>
+          <div><dt>Device</dt><dd id="vDev">–</dd></div>
+          <div><dt>Signal</dt><dd id="vSig">–</dd></div>
+          <div><dt>Display speed</dt><dd id="vPerf">–</dd></div>
+        </dl>
+      </div>
     </div>
   </section>
 </main>
 <script>
 'use strict';
-// The display's firmware (firmware/mic_display/ui.h) draws the same faces at 466 px; this page draws them at
-// 240 px. Protocol between the two: docs/PROTOCOL.md.
+// The display's firmware (firmware/mic_display/ui.h) draws the same faces on its 466 px glass; this page draws
+// them in the same 466 px coordinates. Protocol between the two: docs/PROTOCOL.md.
 
-// ---------- shared design ----------
-const MIN_DB = -60, MAX_DB = 0;            // scale of the dial
-const A0 = 150, A1 = 390;                  // arc from 150° (lower left) clockwise to 30° (lower right), degrees
-const RAD = Math.PI / 180;
-const dbToAngle = (db) => {
-  const t = (Math.max(MIN_DB, Math.min(MAX_DB, db)) - MIN_DB) / (MAX_DB - MIN_DB);
-  return (A0 + t * (A1 - A0)) * RAD;
-};
-const COL = { bg: '#000000', track: '#1d222a', line: '#2a3039', faint: '#3a414b', green: '#2ecc71', amber: '#f5b301', red: '#ff3b30',
-  text: '#f2f4f7', dim: '#7d8794', needle: '#ffffff' };
-const FONT = { small: '500 11px "IBM Plex Sans", sans-serif', msg: '500 16px "IBM Plex Sans", sans-serif', warn: '600 16px "IBM Plex Sans", sans-serif',
-  label: '600 10px "IBM Plex Sans", sans-serif', big: '600 26px "IBM Plex Mono", monospace', huge: '600 42px "IBM Plex Mono", monospace' };
-const FACES = ['dial', 'bars', 'loudness', 'talk', 'clock'];
-const c = 120;
+// ---------- shared design (the same numbers as ui.h) ----------
+const W = 466, C = 233, RAD = Math.PI / 180;
+const MIN_DB = -60, MAX_DB = 0, A0 = 150, A1 = 390, Z_YELLOW = -18, Z_RED = -6;
+const dbToDeg = (db) => A0 + (Math.max(MIN_DB, Math.min(MAX_DB, db)) - MIN_DB) / (MAX_DB - MIN_DB) * (A1 - A0);
+const dbT = (db) => (Math.max(MIN_DB, Math.min(MAX_DB, db)) - MIN_DB) / (MAX_DB - MIN_DB);
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+const tint = (hex, pct) => { const n = parseInt(hex.slice(1), 16); return `rgb(${((n >> 16) & 255) * pct / 100 | 0},${((n >> 8) & 255) * pct / 100 | 0},${(n & 255) * pct / 100 | 0})`; };
+const COL = { white: '#ffffff', second: '#8e8e93', tert: '#48484a', fill: '#2c2c2e', fillD: '#1c1c1e',
+  green: '#30d158', yellow: '#ffd60a', orange: '#ff9f0a', red: '#ff453a', blue: '#0a84ff', cyan: '#64d2ff' };
+Object.assign(COL, { greenT: tint(COL.green, 24), yellowT: tint(COL.yellow, 22), redT: tint(COL.red, 24), orangeT: tint(COL.orange, 24), cyanT: tint(COL.cyan, 22) });
+const FAMILY = 'Inter, -apple-system, system-ui, sans-serif';
+const F = { mini: `600 17px ${FAMILY}`, cap: `500 22px ${FAMILY}`, body: `500 30px ${FAMILY}`, title: `600 34px ${FAMILY}`,
+  value: `600 50px ${FAMILY}`, num: `600 76px ${FAMILY}`, huge: `500 104px ${FAMILY}`, giant: `500 156px ${FAMILY}` };
+// Faces: ids as the board's C,face line; ORDER = the swipe order on the display.
+const ORDER = ['dial', 'rings', 'big', 'modular', 'bars', 'loudness', 'talk', 'clock'];
+const NAMES = { dial: 'Dial', rings: 'Rings', big: 'Big number', modular: 'Modular', bars: 'Frequency bars', loudness: 'Loudness', talk: 'Talk time', clock: 'Clock' };
+const MINUS = '−';
 
-function text(ctx, s, x, y, font, col, align = 'center') { ctx.font = font; ctx.fillStyle = col; ctx.textAlign = align; ctx.fillText(s, x, y); }
-function fit(ctx, s, font, maxW) {   // cut to maxW with "...", as the firmware's fitText
-  ctx.font = font; if (ctx.measureText(s).width <= maxW) return s;
-  for (let n = s.length - 1; n > 0; n--) { const t = s.slice(0, n).trimEnd() + '...'; if (ctx.measureText(t).width <= maxW) return t; }
-  return '...';
+// ---------- drawing primitives (mirror ui.h) ----------
+const px = (r, a) => C + Math.cos(a * RAD) * r, py = (r, a) => C + Math.sin(a * RAD) * r;
+function arcSeg(ctx, cx, cy, ri, ro, a0, a1, col, cap = 'butt') {
+  if (a1 <= a0 && cap === 'butt') return;
+  ctx.strokeStyle = col; ctx.lineWidth = ro - ri; ctx.lineCap = cap;
+  ctx.beginPath(); ctx.arc(cx, cy, (ri + ro) / 2, a0 * RAD, Math.max(a0, a1) * RAD); ctx.stroke(); ctx.lineCap = 'butt';
 }
-function sector(ctx, r0, r1, a, b, col) {   // ring segment r0..r1 between angles a..b (degrees)
-  ctx.fillStyle = col; ctx.beginPath(); ctx.arc(c, c, r1, a * RAD, b * RAD); ctx.arc(c, c, r0, b * RAD, a * RAD, true); ctx.closePath(); ctx.fill();
+const ring = (ctx, ri, ro, a0, a1, col) => arcSeg(ctx, C, C, ri, ro, a0, a1, col);
+const roundArc = (ctx, ri, ro, a0, a1, col) => arcSeg(ctx, C, C, ri, ro, a0, a1, col, 'round');
+function disc(ctx, x, y, r, col) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+function line(ctx, ax, ay, bx, by, hw, round, col) {
+  ctx.strokeStyle = col; ctx.lineWidth = hw * 2; ctx.lineCap = round ? 'round' : 'butt';
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); ctx.lineCap = 'butt';
 }
-function prelude(ctx, s) {   // background, clip ring (inside the shell's window), "waiting for PC"
-  ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, 240, 240);
-  if (s.clip && s.live) { ctx.strokeStyle = COL.red; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(c, c, 107.75, 0, Math.PI * 2); ctx.stroke(); }
-  if (!s.live) { text(ctx, 'waiting for PC', c, c + 6, FONT.msg, COL.dim); return false; }
+const radial = (ctx, r0, r1, a, hw, round, col) => line(ctx, px(r0, a), py(r0, a), px(r1, a), py(r1, a), hw, round, col);
+// Text with tabular figures (every digit on the widest digit's advance), as the display's fonts.
+const digitCache = {};
+function digitW(ctx, font) { if (!(font in digitCache)) { ctx.font = font; digitCache[font] = Math.max(...'0123456789'.split('').map((d) => ctx.measureText(d).width)); } return digitCache[font]; }
+function tw(ctx, s, font) { ctx.font = font; const d = digitW(ctx, font); let w = 0; for (const ch of s) w += /\d/.test(ch) ? d : ctx.measureText(ch).width; return w; }
+function textL(ctx, s, x, y, font, col) {
+  const d = digitW(ctx, font); ctx.font = font; ctx.fillStyle = col; ctx.textAlign = 'left';
+  for (const ch of s) { const w = ctx.measureText(ch).width; if (/\d/.test(ch)) { ctx.fillText(ch, x + (d - w) / 2, y); x += d; } else { ctx.fillText(ch, x, y); x += w; } }
+  return x;
+}
+const textC = (ctx, s, x, y, font, col) => textL(ctx, s, x - tw(ctx, s, font) / 2, y, font, col);
+function numUnit(ctx, n, fn, u, fu, y, cn, cu, gap = 6) { const w = tw(ctx, n, fn) + gap + tw(ctx, u, fu); const x = textL(ctx, n, C - w / 2, y, fn, cn); textL(ctx, u, x + gap, y, fu, cu); }
+function iconMic(ctx, cx, cy, col) {
+  line(ctx, cx, cy - 22, cx, cy + 2, 10, true, col);
+  arcSeg(ctx, cx, cy - 6, 17, 20.5, 0, 180, col);
+  line(ctx, cx, cy + 21, cx, cy + 30, 1.75, false, col);
+  line(ctx, cx - 10, cy + 30, cx + 10, cy + 30, 1.75, true, col);
+}
+
+// ---------- faces (mirror ui.h) ----------
+const zoneCol = (db) => db > Z_RED ? COL.red : db > Z_YELLOW ? COL.yellow : COL.green;
+const fmtDb = (v) => v <= MIN_DB ? MINUS + '∞' : (Math.round(v) < 0 ? MINUS + -Math.round(v) : String(Math.round(v)));
+const fmtLufs = (v, tenths = true) => (v == null || isNaN(v) || v < -70) ? MINUS + '∞'
+  : (Math.round(v * (tenths ? 10 : 1)) < 0 ? MINUS : '') + (tenths ? (Math.abs(Math.round(v * 10)) / 10).toFixed(1) : String(Math.abs(Math.round(v))));
+const fmtDur = (s) => s == null || s < 0 ? '–:––' : s >= 3600 ? `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+function clipRing(ctx, s) { if (s.clip && s.live) ring(ctx, 207.5, 211.5, 0, 360, COL.red); }
+function prelude(ctx, s) {
+  clipRing(ctx, s);
+  if (!s.live) { iconMic(ctx, C, C - 34, COL.tert); textC(ctx, 'Waiting for PC', C, C + 50, F.body, COL.second); return false; }
   return true;
 }
-function levelNumber(ctx, s, y, yUnit) {   // NO SIGNAL (3 s of silence, e.g. the mic's own mute button) takes the number's place
-  if (s.silent) { text(ctx, 'NO SIGNAL', c, y + 6, FONT.warn, COL.amber); return; }
-  text(ctx, s.level <= MIN_DB ? '–∞' : Math.round(s.level).toString(), c, y, FONT.big, COL.text);
-  text(ctx, 'dBFS', c, yUnit, FONT.small, COL.dim);
+function levelNumber(ctx, s, font, y, col = COL.white) {
+  if (s.silent) { textC(ctx, 'No signal', C, y - 10, F.title, COL.yellow); return; }
+  textC(ctx, fmtDb(s.level), C, y, font, col);
 }
-function footer(ctx, s, withRate) {   // rate (and clip count in red) at 196, device name at 211
-  const rate = withRate && s.rate ? `${(s.rate / 1000).toFixed(s.rate % 1000 ? 1 : 0)} kHz` : '';
-  const clips = withRate && s.clips ? `${s.clips} clip${s.clips === 1 ? '' : 's'}` : '';
-  const dot = rate && clips ? '  ·  ' : '';
-  ctx.font = FONT.small;
-  let x = c - (ctx.measureText(rate).width + ctx.measureText(dot).width + ctx.measureText(clips).width) / 2;
-  for (const [t, col] of [[rate, COL.dim], [dot, COL.dim], [clips, COL.red]]) { if (!t) continue; text(ctx, t, x, 196, FONT.small, col, 'left'); x += ctx.measureText(t).width; }
-  text(ctx, fit(ctx, s.name || '', FONT.small, 98), c, 211, FONT.small, COL.dim);
+function levelBar(ctx, s, x0, x1, y, hw) {
+  line(ctx, x0, y, x1, y, hw, true, COL.fill);
+  const span = x1 - x0, xe = x0 + span * dbT(s.needle);
+  if (s.needle > MIN_DB + 0.2) {
+    const xy = x0 + span * dbT(Z_YELLOW), xr = x0 + span * dbT(Z_RED);
+    line(ctx, x0, y, Math.min(xe, xy), y, hw, true, COL.green);
+    if (xe > xy) line(ctx, xy, y, Math.min(xe, xr), y, hw, true, COL.yellow);
+    if (xe > xr) line(ctx, xr, y, xe, y, hw, true, COL.red);
+  }
+  if (s.peak > MIN_DB) { const xp = x0 + span * dbT(s.peak); line(ctx, xp, y - hw - 5, xp, y + hw + 5, 1.5, true, s.peak > Z_RED ? COL.red : COL.white); }
 }
-function faceLabel(ctx, t) { ctx.letterSpacing = '1.2px'; text(ctx, t, c, 68, FONT.label, COL.dim); ctx.letterSpacing = '0px'; }
-function faceRing(ctx, t, col) { sector(ctx, 98, 104, A0, A1, COL.track); if (t > 0.002) sector(ctx, 98, 104, A0, A0 + Math.min(1, t) * (A1 - A0), col); }
-const fmtLufs = (v) => (v == null || isNaN(v) || v < -70) ? '–∞' : (Math.round(v * 10) < 0 ? '−' : '') + (Math.abs(Math.round(v * 10)) / 10).toFixed(1);
-const fmtDur = (s) => s == null || s < 0 ? '–:–' : s >= 3600 ? `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+function scaleArc(ctx, t, track, col) { roundArc(ctx, 194, 206, A0, A1, track); if (t > 0.003) roundArc(ctx, 194, 206, A0, A0 + clamp01(t) * (A1 - A0), col); }
 
 function drawDial(ctx, s) {
   if (!prelude(ctx, s)) return;
-  const zone = (from, to, col) => { ctx.strokeStyle = col; ctx.lineWidth = 10; ctx.beginPath(); ctx.arc(c, c, 100, dbToAngle(from), dbToAngle(to)); ctx.stroke(); };
-  zone(-60, -18, '#16502f'); zone(-18, -6, '#5a4300'); zone(-6, 0, '#5c1612');
-  const lit = (from, to, col) => { if (s.level > from) zone(from, Math.min(to, s.level), col); };
-  lit(-60, -18, COL.green); lit(-18, -6, COL.amber); lit(-6, 0, COL.red);
-  ctx.strokeStyle = COL.dim; ctx.lineCap = 'butt';
-  for (const db of [-60, -48, -36, -24, -18, -12, -6, 0]) {
-    const a = dbToAngle(db);
-    ctx.lineWidth = 2; ctx.beginPath();
-    ctx.moveTo(c + Math.cos(a) * 88, c + Math.sin(a) * 88); ctx.lineTo(c + Math.cos(a) * 81, c + Math.sin(a) * 81); ctx.stroke();
-    if (db !== -18) text(ctx, String(db), c + Math.cos(a) * 70, c + Math.sin(a) * 70 + 4, FONT.small, COL.dim);   // -18 is a tick only (zone edge)
+  ring(ctx, 192, 204, dbToDeg(MIN_DB), dbToDeg(Z_YELLOW), COL.greenT);
+  ring(ctx, 192, 204, dbToDeg(Z_YELLOW), dbToDeg(Z_RED), COL.yellowT);
+  ring(ctx, 192, 204, dbToDeg(Z_RED), dbToDeg(MAX_DB), COL.redT);
+  const lit = s.needle > MIN_DB + 0.2;
+  disc(ctx, px(198, A0), py(198, A0), 6, lit ? COL.green : COL.greenT);
+  disc(ctx, px(198, A1), py(198, A1), 6, COL.redT);
+  if (lit) {
+    ring(ctx, 192, 204, A0, dbToDeg(Math.min(s.needle, Z_YELLOW)), COL.green);
+    if (s.needle > Z_YELLOW) ring(ctx, 192, 204, dbToDeg(Z_YELLOW), dbToDeg(Math.min(s.needle, Z_RED)), COL.yellow);
+    if (s.needle > Z_RED) ring(ctx, 192, 204, dbToDeg(Z_RED), dbToDeg(s.needle), COL.red);
+    disc(ctx, px(198, dbToDeg(s.needle)), py(198, dbToDeg(s.needle)), 6, zoneCol(s.needle));
   }
-  if (s.peak > MIN_DB) {
-    const a = dbToAngle(s.peak);
-    ctx.fillStyle = s.peak > -6 ? COL.red : COL.text;
-    ctx.beginPath(); ctx.arc(c + Math.cos(a) * 100, c + Math.sin(a) * 100, 4, 0, Math.PI * 2); ctx.fill();
-  }
-  const a = dbToAngle(s.level);
-  ctx.strokeStyle = COL.needle; ctx.lineWidth = 3; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(c - Math.cos(a) * 10, c - Math.sin(a) * 10); ctx.lineTo(c + Math.cos(a) * 92, c + Math.sin(a) * 92); ctx.stroke();
-  ctx.lineCap = 'butt';
-  ctx.fillStyle = COL.needle; ctx.beginPath(); ctx.arc(c, c, 6, 0, Math.PI * 2); ctx.fill();
-  levelNumber(ctx, s, c + 50, c + 64);
-  footer(ctx, s, true);
+  for (let db = -60; db <= 0; db += 2) { const major = db % 10 === 0; radial(ctx, major ? 164 : 172, 184, dbToDeg(db), major ? 1.4 : 0.8, false, major ? COL.second : COL.tert); }
+  [-40, -20, 0].forEach(   // no -60: the needle rests there in silence
+(db) => { const a = dbToDeg(db); textC(ctx, db ? MINUS + -db : '0', px(140, a), py(140, a) + 8, F.cap, COL.second); });
+  if (s.peak > MIN_DB) radial(ctx, 186, 209, dbToDeg(s.peak), 1.6, true, s.peak > Z_RED ? COL.red : COL.white);
+  const a = dbToDeg(s.needle);
+  line(ctx, px(-18, a), py(-18, a), px(178, a), py(178, a), 2.2, true, COL.orange);
+  disc(ctx, C, C, 10, COL.orange); disc(ctx, C, C, 4, '#000');
+  levelNumber(ctx, s, F.num, C + 112);
+  if (!s.silent) textC(ctx, 'dB', C, C + 146, F.cap, COL.second);
+  if (s.clips) textC(ctx, `${s.clips} clip${s.clips === 1 ? '' : 's'}`, C, C + 176, F.cap, COL.red);
 }
-function drawBars(ctx, s) {   // bass lower left, over the top, treble lower right; colour by height like the dial's zones
+function drawRings(ctx, s) {   // outer = level, middle = held peak, inner = talk time's share of the session
   if (!prelude(ctx, s)) return;
-  const n = s.bands.length || 32, slot = (A1 - A0) / n, r0 = 60, len = 43, g = r0 + len * 0.7, am = r0 + len * 0.88;
+  const talk = s.session > 0 ? s.talk / s.session : 0;
+  for (const [ri, ro, t, col, track] of [[170, 204, dbT(s.needle), COL.green, COL.greenT], [130, 164, dbT(s.peak), COL.orange, COL.orangeT], [90, 124, talk, COL.cyan, COL.cyanT]]) {
+    ring(ctx, ri, ro, 0, 360, track);
+    roundArc(ctx, ri, ro, -90, -90 + 360 * clamp01(t) * 0.999, col);
+  }
+  levelNumber(ctx, s, F.num, C + 27);
+}
+function drawBig(ctx, s) {
+  if (!prelude(ctx, s)) return;
+  if (s.silent) textC(ctx, 'No signal', C, C + 18, F.value, COL.yellow);
+  else {
+    textC(ctx, fmtDb(s.level), C, C + 52, F.giant, s.level > Z_RED ? COL.red : s.level > Z_YELLOW ? COL.yellow : COL.white);
+    textC(ctx, 'dBFS', C, C + 92, F.cap, COL.second);
+  }
+  levelBar(ctx, s, C - 92, C + 92, C + 132, 4);
+}
+function complication(ctx, cx, cy, t, col, value, vcol, unit) {
+  arcSeg(ctx, cx, cy, 36, 40, 0, 360, COL.fill);
+  if (t > 0.003) arcSeg(ctx, cx, cy, 36, 40, -90, -90 + 360 * clamp01(t), col);
+  textC(ctx, value, cx, cy + 8, F.body, vcol);
+  textC(ctx, unit, cx, cy + 27, F.mini, COL.second);
+}
+function drawModular(ctx, s) {
+  clipRing(ctx, s);
+  const d = new Date(), hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  textC(ctx, hm, C, 118, F.value, COL.white);
+  if (!s.live) { textC(ctx, 'Waiting for PC', C, C + 30, F.body, COL.second); return; }
+  if (s.silent) textC(ctx, 'No signal', C, 228, F.title, COL.yellow);
+  else numUnit(ctx, fmtDb(s.level), F.num, 'dB', F.cap, 236, COL.white, COL.second);
+  levelBar(ctx, s, C - 128, C + 128, 264, 6);
+  const r = s.rate ? (s.rate / 1000).toFixed(s.rate % 1000 ? 1 : 0) : '–';
+  complication(ctx, C - 100, 352, s.rate ? 1 : 0, COL.blue, r, COL.white, 'kHz');
+  complication(ctx, C, 352, s.clips ? 1 : 0, COL.red, String(s.clips), s.clips ? COL.red : COL.white, s.clips === 1 ? 'clip' : 'clips');
+  complication(ctx, C + 100, 352, isNaN(s.lufsS) ? 0 : (s.lufsS + 50) / 50, COL.green, fmtLufs(s.lufsS, false), COL.white, 'LUFS');
+}
+function drawBars(ctx, s) {   // bass lower left, over the top, treble lower right
+  if (!prelude(ctx, s)) return;
+  const n = s.bands.length || 32, slot = (A1 - A0) / n, r0 = 124, len = 76;
   for (let i = 0; i < n; i++) {
-    const a = A0 + i * slot + slot * 0.14, b = a + slot * 0.72, top = r0 + len * (s.bands[i] || 0) / 100;
-    sector(ctx, r0, r0 + len, a, b, COL.track);
-    if (top > r0) sector(ctx, r0, Math.min(top, g), a, b, COL.green);
-    if (top > g) sector(ctx, g, Math.min(top, am), a, b, COL.amber);
-    if (top > am) sector(ctx, am, top, a, b, COL.red);
+    const a = A0 + (i + 0.5) * slot, v = clamp01((s.bands[i] || 0) / 100);
+    radial(ctx, r0, r0 + len, a, 3.5, true, COL.fillD);
+    radial(ctx, r0, r0 + len * v, a, 3.5, true, v > 0.88 ? COL.red : v > 0.70 ? COL.yellow : COL.green);
   }
-  text(ctx, 'bass', c - 68, 182, FONT.small, COL.dim); text(ctx, 'treble', c + 68, 182, FONT.small, COL.dim);
-  levelNumber(ctx, s, c + 10, c + 24);
-  footer(ctx, s, true);
+  levelNumber(ctx, s, F.num, C + 27);
 }
-function drawLoudness(ctx, s) {   // short-term LUFS big, session (integrated) under it; ring −50..0 LUFS, dot = session
+function drawLoudness(ctx, s) {   // short-term LUFS big, the session's integrated loudness as a line and a white dot
   if (!prelude(ctx, s)) return;
-  faceLabel(ctx, 'LOUDNESS');
-  faceRing(ctx, isNaN(s.lufsS) ? 0 : (s.lufsS + 50) / 50, COL.green);
+  scaleArc(ctx, isNaN(s.lufsS) ? 0 : (s.lufsS + 50) / 50, COL.greenT, COL.green);
   if (!isNaN(s.lufsI) && s.lufsI >= -50) {
-    const a = (A0 + (Math.min(0, s.lufsI) + 50) / 50 * (A1 - A0)) * RAD;
-    ctx.fillStyle = COL.text; ctx.beginPath(); ctx.arc(c + Math.cos(a) * 101, c + Math.sin(a) * 101, 4, 0, Math.PI * 2); ctx.fill();
+    const a = A0 + (Math.min(0, s.lufsI) + 50) / 50 * (A1 - A0);
+    disc(ctx, px(200, a), py(200, a), 9, '#000'); disc(ctx, px(200, a), py(200, a), 6.5, COL.white);
   }
-  text(ctx, fmtLufs(s.lufsS), c, c + 14, FONT.huge, COL.text);
-  text(ctx, 'LUFS short-term', c, c + 31, FONT.small, COL.dim);
-  const lab = 'Session  ', v = fmtLufs(s.lufsI);
-  ctx.font = FONT.msg; const x = c - (ctx.measureText(lab).width + ctx.measureText(v).width) / 2;
-  text(ctx, lab, x, c + 52, FONT.msg, COL.dim, 'left'); text(ctx, v, x + ctx.measureText(lab).width, c + 52, FONT.msg, COL.text, 'left');
-  text(ctx, '−50', c - 64, 190, FONT.small, COL.dim); text(ctx, '0', c + 64, 190, FONT.small, COL.dim);
+  textC(ctx, fmtLufs(s.lufsS), C, C + 36, F.huge, COL.white);
+  textC(ctx, 'LUFS', C, C + 72, F.cap, COL.second);
+  const lab = 'Session ', v = fmtLufs(s.lufsI), w = tw(ctx, lab, F.body) + tw(ctx, v, F.body);
+  const x = textL(ctx, lab, C - w / 2, C + 122, F.body, COL.second); textL(ctx, v, x, C + 122, F.body, COL.white);
 }
-function drawTalk(ctx, s) {   // time with the voice above the silence floor this session; ring = share of the session
+function drawTalk(ctx, s) {   // time with the voice above the silence floor; the arc = share of the session
   if (!prelude(ctx, s)) return;
-  faceLabel(ctx, 'TALK TIME');
-  faceRing(ctx, s.session > 0 ? s.talk / s.session : 0, COL.green);
-  text(ctx, fmtDur(s.talk), c, c + 14, FONT.huge, COL.text);
-  text(ctx, `of ${fmtDur(s.session)} session`, c, c + 40, FONT.msg, COL.dim);
-  const talking = !s.silent && s.level > SILENT_DB, w = talking ? 'talking' : 'quiet';
-  ctx.font = FONT.small; const x = c - (ctx.measureText(w).width + 7) / 2;
-  ctx.fillStyle = talking ? COL.green : COL.faint; ctx.beginPath(); ctx.arc(x + 2.5, c + 60.5, 2.5, 0, Math.PI * 2); ctx.fill();
-  text(ctx, w, x + 7, c + 64, FONT.small, talking ? COL.green : COL.dim, 'left');
-  footer(ctx, s, false);
+  scaleArc(ctx, s.session > 0 ? s.talk / s.session : 0, COL.cyanT, COL.cyan);
+  textC(ctx, fmtDur(s.talk), C, C + 36, s.talk >= 3600 ? F.num : F.huge, COL.white);
+  textC(ctx, `of ${fmtDur(s.session)}`, C, C + 80, F.body, COL.second);
+  const talking = !s.silent && s.level > SILENT_DB, w = talking ? 'Talking' : 'Quiet', x = C - (tw(ctx, w, F.cap) + 16) / 2;
+  disc(ctx, x + 5, C + 121, 5, talking ? COL.green : COL.tert);
+  textL(ctx, w, x + 16, C + 128, F.cap, talking ? COL.green : COL.second);
 }
-function drawClock(ctx, s) {   // 60 minute ticks, the seconds sweep lit
-  ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, 240, 240);
-  if (s.clip && s.live) { ctx.strokeStyle = COL.red; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(c, c, 107.75, 0, Math.PI * 2); ctx.stroke(); }
+function drawClock(ctx, s) {   // 60 ticks, the second in orange
+  clipRing(ctx, s);
   const d = new Date(), sec = d.getSeconds();
-  ctx.lineCap = 'butt';
   for (let i = 0; i < 60; i++) {
-    const a = (-90 + i * 6) * RAD, five = i % 5 === 0, r0 = five ? 94 : 98;
-    ctx.strokeStyle = i === sec ? COL.text : i < sec ? COL.dim : five ? COL.faint : COL.line; ctx.lineWidth = five ? 1.8 : 1.1;
-    ctx.beginPath(); ctx.moveTo(c + Math.cos(a) * r0, c + Math.sin(a) * r0); ctx.lineTo(c + Math.cos(a) * 104, c + Math.sin(a) * 104); ctx.stroke();
+    if (i === sec) continue;
+    const five = i % 5 === 0;
+    radial(ctx, five ? 186 : 194, 205, -90 + i * 6, five ? 1.5 : 0.8, false, five ? (i < sec ? COL.white : COL.second) : (i < sec ? COL.second : COL.tert));
   }
-  text(ctx, `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`, c, c + 14, FONT.huge, COL.text);
-  const WD = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  text(ctx, `${WD[d.getDay()]} ${d.getDate()} ${MO[d.getMonth()]}`, c, c + 42, FONT.msg, COL.dim);
+  radial(ctx, 180, 205, -90 + sec * 6, 2, true, COL.orange);
+  const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  textC(ctx, `${WD[d.getDay()]} ${d.getDate()} ${MO[d.getMonth()]}`, C, C - 74, F.body, COL.orange);
+  textC(ctx, `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`, C, C + 38, F.huge, COL.white);
+  if (s.live) levelBar(ctx, s, C - 64, C + 64, C + 96, 4);
 }
-const DRAW = { dial: drawDial, bars: drawBars, loudness: drawLoudness, talk: drawTalk, clock: drawClock };
+const DRAW = { dial: drawDial, rings: drawRings, big: drawBig, modular: drawModular, bars: drawBars, loudness: drawLoudness, talk: drawTalk, clock: drawClock };
 
 // ---------- state ----------
 const $ = (id) => document.getElementById(id);
-const SILENT_DB = -55;   // below this for 3 s = NO SIGNAL; also the floor for talk time (same rule as the firmware)
-const state = { live: false, level: MIN_DB, peak: MIN_DB, clip: false, silent: false, rate: 0, name: '', clips: 0,
+const SILENT_DB = -55;   // below this for 3 s = No signal; also the floor for talk time (same rule as the firmware)
+const state = { live: false, level: MIN_DB, needle: MIN_DB, peak: MIN_DB, clip: false, silent: false, rate: 0, name: '', clips: 0,
   bands: new Array(32).fill(0), lufsS: NaN, lufsI: NaN, talk: 0, session: 0 };
 let face = 'dial', faceFromBoard = false, peakHoldS = 1;   // the display announces its face and peak hold (C lines)
-let peakAt = 0, clipUntil = 0, needle = MIN_DB, loudAt = 0, wasClip = false, sendPeak = MIN_DB;
+let peakAt = 0, clipUntil = 0, vu = MIN_DB, loudAt = 0, wasClip = false, sendPeak = MIN_DB;
 let audio = null, analyser = null, buf = null, bandAn = null, bandBuf = null, kAn = null, kBuf = null, demo = false, demoT = 0;
 let devs = [], currentId = '';
 let talkT = 0, sessionT = 0;
 
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+// ---------- the face pager: the preview slides like the display ----------
+let pageOff = 0, prevFace = null, drag = null;
+function setFace(f, animate = true) {
+  if (!DRAW[f] || f === face) { updateFaceUi(); return; }
+  const dir = Math.sign(ORDER.indexOf(f) - ORDER.indexOf(face)) || 1;
+  if (animate) { prevFace = face; pageOff = (drag ? pageOff : 0) + dir * W; } else { prevFace = null; pageOff = 0; }
+  face = f; store.set('face', f);
+  updateFaceUi();
+}
+function updateFaceUi() {
+  const i = ORDER.indexOf(face);
+  $('faceName').textContent = NAMES[face];
+  $('dots').innerHTML = ORDER.map((f) => `<i class="${f === face ? 'on' : ''}"></i>`).join('');
+  $('prev').disabled = faceFromBoard || i === 0; $('next').disabled = faceFromBoard || i === ORDER.length - 1;
+  $('dial').classList.toggle('locked', faceFromBoard);
+  $('faceNote').textContent = faceFromBoard ? 'Follows the display: swipe the display to change the face.' : 'Swipe the face, or the display itself once it is connected.';
+}
+$('prev').onclick = () => setFace(ORDER[ORDER.indexOf(face) - 1]);
+$('next').onclick = () => setFace(ORDER[ORDER.indexOf(face) + 1]);
+$('dial').addEventListener('keydown', (e) => { if (faceFromBoard) return; if (e.key === 'ArrowLeft') $('prev').click(); if (e.key === 'ArrowRight') $('next').click(); });
+$('dial').addEventListener('pointerdown', (e) => {
+  if (faceFromBoard) return;
+  drag = { x: e.clientX, y: e.clientY, base: pageOff, t: performance.now(), lx: e.clientX, v: 0, on: false };
+  $('dial').setPointerCapture(e.pointerId);
+});
+$('dial').addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  const k = W / $('dial').getBoundingClientRect().width, dx = (e.clientX - drag.x) * k, now = performance.now();
+  if (!drag.on && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs((e.clientY - drag.y) * k)) drag.on = true;
+  drag.v = 0.6 * ((e.clientX - drag.lx) * k / Math.max(1, now - drag.t)) + 0.4 * drag.v; drag.lx = e.clientX; drag.t = now;
+  if (!drag.on) return;
+  const i = ORDER.indexOf(face); let raw = drag.base + dx;
+  if ((raw > 0 && i === 0) || (raw < 0 && i === ORDER.length - 1)) raw *= 0.3;   // rubber band at the ends
+  pageOff = Math.max(-W, Math.min(W, raw)); prevFace = null;
+});
+function endDrag() {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (!d.on) return;
+  const i = ORDER.indexOf(face);
+  const v = performance.now() - d.t > 80 ? 0 : d.v;
+  if (pageOff < 0 && i < ORDER.length - 1 && (pageOff < -W * 0.2 || v < -0.35)) { const off = pageOff; setFace(ORDER[i + 1], false); prevFace = ORDER[i]; pageOff = off + W; }
+  else if (pageOff > 0 && i > 0 && (pageOff > W * 0.2 || v > 0.35)) { const off = pageOff; setFace(ORDER[i - 1], false); prevFace = ORDER[i]; pageOff = off - W; }
+}
+$('dial').addEventListener('pointerup', endDrag);
+$('dial').addEventListener('pointercancel', endDrag);
 
 // ---------- microphone ----------
 async function startMic(deviceId) {
@@ -362,16 +494,20 @@ function loudUpdate() {
 let port = null, writer = null, boardFw = '', lastT = 0, lastInfo = 0;
 const enc = new TextEncoder();
 function send(line) { if (writer) writer.write(enc.encode(line + '\n')).catch(() => {}); }
+function serialStatus(text, ok = false, err = false) {
+  const el = $('serialNote'); el.classList.toggle('ok', ok);
+  el.innerHTML = `<i></i><span class="${err ? 'err' : ''}"></span>`; el.querySelector('span').textContent = text;
+}
 async function connectSerial() {
-  if (!('serial' in navigator)) { $('serialNote').innerHTML = '<span class="err">This browser has no USB serial. Use Chrome or Edge.</span>'; return; }
+  if (!('serial' in navigator)) { serialStatus('This browser has no USB serial. Use Chrome or Edge.', false, true); return; }
   try {
     port = await navigator.serial.requestPort();
     await port.open({ baudRate: 115200 });
     writer = port.writable.getWriter();
-    $('serialNote').textContent = 'Display connected.'; $('connect').textContent = 'Display connected'; $('connect').disabled = true;
+    serialStatus('Display connected.', true); $('connect').textContent = 'Connected'; $('connect').disabled = true;
     lastT = 0; sendInfo(performance.now());
     readSerial();
-  } catch (e) { $('serialNote').innerHTML = `<span class="err">Not connected: ${e.message}</span>`; }
+  } catch (e) { serialStatus(`Not connected: ${e.message}`, false, true); }
 }
 async function readSerial() {
   const dec = new TextDecoderStream(); port.readable.pipeTo(dec.writable).catch(() => {});
@@ -383,25 +519,23 @@ async function readSerial() {
       while ((i = line.indexOf('\n')) >= 0) { onBoardLine(line.slice(0, i).replace(/\r$/, '')); line = line.slice(i + 1); }
     }
   } catch {}
-  writer = null; boardFw = ''; faceFromBoard = false; $('face').disabled = false;
-  $('faceNote').textContent = 'Swipe the display left or right to change it; this preview follows.';
+  writer = null; boardFw = ''; faceFromBoard = false; updateFaceUi(); $('vPerf').textContent = '–';
   $('connect').disabled = false; $('connect').textContent = 'Connect display';
-  $('serialNote').innerHTML = '<span class="err">Display disconnected. Plug it back in and connect again.</span>';
+  serialStatus('Display disconnected. Plug it back in and connect again.', false, true);
 }
 // Board -> PC lines. This page acts on what a browser can do: its own input (C,mic), the face shown, peak hold
-// and reset. Windows mute and volumes (C,mute / vol / outmute / outvol / out) need the PC app; they are left
-// unanswered here, so the display keeps those settings greyed.
+// and reset; it shows the board's speed (C,perf). Windows mute and volumes (C,mute / vol / outmute / outvol /
+// out) need the PC app; they are left unanswered here, so the display keeps those settings greyed.
 function onBoardLine(l) {
   const f = l.split(',');
   if (f[0] !== 'C') return;
   if (f[1] === 'hello') {
-    if (boardFw !== f[2]) { boardFw = f[2]; $('serialNote').textContent = `Display connected (firmware ${boardFw}).`; sendInfo(performance.now(), true); }
-  } else if (f[1] === 'face' && FACES.includes(f[2])) {
-    face = f[2]; faceFromBoard = true; $('face').value = face; $('face').disabled = true;
-    $('faceNote').textContent = 'Follows the display: swipe it left or right to change the face.';
-  } else if (f[1] === 'peakhold') peakHoldS = Math.max(0, +f[2] || 0);
+    if (boardFw !== f[2]) { boardFw = f[2]; serialStatus(`Display connected, firmware ${boardFw}.`, true); sendInfo(performance.now(), true); }
+  } else if (f[1] === 'face' && DRAW[f[2]]) { faceFromBoard = true; setFace(f[2]); updateFaceUi(); }
+  else if (f[1] === 'peakhold') peakHoldS = Math.max(0, +f[2] || 0);
   else if (f[1] === 'reset') { state.peak = MIN_DB; sendPeak = MIN_DB; state.clips = 0; }
   else if (f[1] === 'mic') { const { list } = boardInputs(), d = list[+f[2]]; if (d) startMic(d.deviceId); }
+  else if (f[1] === 'perf') $('vPerf').textContent = f[2] === '-' ? 'idle' : `${f[4]} fps · draw ${f[2]} ms · send ${f[3]} ms`;
 }
 function sendInputs() {   // P,<mute>,<vol>,<index>,<count>,<names...>: mute and volume "-" (a browser cannot read or set them)
   if (!writer) return;
@@ -433,20 +567,26 @@ function sendFrame(now) {
   if (face === 'bars') send(`F,${state.bands.length},${state.bands.join(',')}`);
 }
 $('connect').onclick = connectSerial;
-$('face').onchange = (e) => { if (!faceFromBoard) face = e.target.value; };
 
 // ---------- loop ----------
 const ctx = $('dial').getContext('2d');
-let last = performance.now(), lastLoud = 0;
+ctx.scale(2, 2);   // 466 logical px on a 932 px canvas: sharp on high-density screens
+let last = performance.now(), lastLoud = 0, lastStats = 0;
+function drawPage(f, off) {
+  ctx.save();
+  ctx.translate(off, 0);
+  (DRAW[f] || drawDial)(ctx, state);
+  ctx.restore();
+}
 function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
-  const m = measure(dt, face === 'bars');
+  const m = measure(dt, face === 'bars' || prevFace === 'bars');
   if (m) {
     state.live = true;
-    // VU-like ballistics: fast attack, slower fall
+    // VU-like ballistics: fast attack, slower fall (this is the level the display gets)
     const target = Math.max(MIN_DB, m.rmsDb);
-    needle = target > needle ? needle + (target - needle) * Math.min(1, dt / 0.05) : needle + (target - needle) * Math.min(1, dt / 0.3);
-    state.level = needle;
+    vu = target > vu ? vu + (target - vu) * Math.min(1, dt / 0.05) : vu + (target - vu) * Math.min(1, dt / 0.3);
+    state.level = vu;
     const pk = Math.max(MIN_DB, m.pkDb);
     sendPeak = Math.max(sendPeak, pk);
     if (peakHoldS === 0 || pk >= state.peak || now - peakAt > peakHoldS * 1000) { state.peak = pk; peakAt = now; }   // same hold as the display
@@ -460,21 +600,37 @@ function frame(now) {
     sessionT += dt;
     if (state.level > SILENT_DB) talkT += dt;
     state.talk = Math.floor(talkT); state.session = Math.floor(sessionT);
-    $('vLevel').textContent = `${state.level.toFixed(1)} dBFS`;
-    $('vPeak').textContent = `${state.peak.toFixed(1)} dBFS${state.clip ? ' · CLIPPING' : ''}${state.clips ? ` · ${state.clips} clip${state.clips === 1 ? '' : 's'}` : ''}`;
-    $('vLufs').textContent = `${fmtLufs(state.lufsS)} LUFS short-term · ${fmtLufs(state.lufsI)} session`;
-    $('vTalk').textContent = `${fmtDur(state.talk)} of ${fmtDur(state.session)}`;
-    $('vRate').textContent = state.rate ? `${state.rate} Hz` : '–';
-    $('vDev').textContent = state.name || '–';
     if (state.level > SILENT_DB || !loudAt) loudAt = now;
     state.silent = now - loudAt > 3000;
-    $('vSig').textContent = state.silent ? 'no signal (silent for 3 s or more)' : 'present';
-  } else { state.live = false; state.silent = false; loudAt = 0; $('vSig').textContent = '–'; }
-  (DRAW[face] || drawDial)(ctx, state);
+  } else { state.live = false; state.silent = false; loudAt = 0; state.level = MIN_DB; }
+  // the display's own easing of the needle (ui.h animate: attack 30 ms, release 80 ms)
+  const tl = state.live ? state.level : MIN_DB, tau = tl > state.needle ? 30 : 80;
+  state.needle += (tl - state.needle) * (1 - Math.exp(-dt * 1000 / tau));
+  // the page settles like the display's (tau 55 ms)
+  if (!drag || !drag.on) { pageOff *= Math.exp(-dt * 1000 / 55); if (Math.abs(pageOff) < 0.5) { pageOff = 0; prevFace = null; } }
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, W);
+  const off = Math.round(pageOff), i = ORDER.indexOf(face);
+  drawPage(face, off);
+  const neighbour = prevFace || (off > 0 ? ORDER[i - 1] : off < 0 ? ORDER[i + 1] : null);
+  if (off !== 0 && neighbour) drawPage(neighbour, off > 0 ? off - W : off + W);
+  if (now - lastStats > 100) {   // the text list, 10 times a second
+    lastStats = now;
+    if (state.live) {
+      $('vLevel').textContent = `${state.level.toFixed(1)} dBFS`;
+      $('vPeak').textContent = `${state.peak.toFixed(1)} dBFS${state.clip ? ' · clipping' : ''}${state.clips ? ` · ${state.clips} clip${state.clips === 1 ? '' : 's'}` : ''}`;
+      $('vLufs').textContent = `${fmtLufs(state.lufsS)} LUFS · session ${fmtLufs(state.lufsI)}`;
+      $('vTalk').textContent = `${fmtDur(state.talk)} of ${fmtDur(state.session)}`;
+      $('vRate').textContent = state.rate ? `${state.rate} Hz` : '–';
+      $('vDev').textContent = state.name || '–';
+      $('vSig').textContent = state.silent ? 'No signal (silent 3 s or more)' : 'Present';
+    } else for (const id of ['vLevel', 'vPeak', 'vLufs', 'vTalk', 'vRate', 'vDev', 'vSig']) $(id).textContent = '–';
+  }
   sendFrame(now);
   requestAnimationFrame(frame);
 }
-document.fonts.ready.finally(() => requestAnimationFrame(frame));
+{ const f = store.get('face'); if (DRAW[f]) face = f; }
+updateFaceUi();
+Promise.all(Object.values(F).map((f) => document.fonts.load(f))).catch(() => {}).finally(() => requestAnimationFrame(frame));
 </script>
 </body>
 </html>

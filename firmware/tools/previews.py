@@ -8,7 +8,8 @@ with Zig's C++ compiler, runs it, and saves:
     glass outside a 424 px circle), captioned.
 
 Needs Python 3 with Pillow and ziglang (pip install pillow ziglang). Run from the repository folder:
-  python firmware/tools/previews.py [folder with IBMPlexSans-Medium.ttf for the captions]
+  python firmware/tools/previews.py [font folder, default firmware/tools/fonts (Inter, used for the captions)]
+Old PNGs in the folder are removed first, so a renamed screen leaves no stale picture behind.
 """
 import os
 import subprocess
@@ -24,8 +25,11 @@ SIZE, SAFE_R = 466, 212
 
 
 def main():
-    font_dir = sys.argv[1] if len(sys.argv) > 1 else None
+    font_dir = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "fonts")
     os.makedirs(OUT, exist_ok=True)
+    for f in os.listdir(OUT):
+        if f.endswith(".png"):
+            os.remove(os.path.join(OUT, f))
     with tempfile.TemporaryDirectory() as tmp:
         exe = os.path.join(tmp, "preview.exe")
         subprocess.run([sys.executable, "-m", "ziglang", "c++", "-std=c++17", "-O2", "-Wall", "-Wno-unused-function",
@@ -50,18 +54,18 @@ def sheet(images, font_dir):
     rows = (len(images) + cols - 1) // cols
     W = cols * tile + (cols + 1) * pad
     H = rows * (tile + cap_h) + (rows + 1) * pad + 70
-    out = Image.new("RGB", (W, H), (13, 15, 18))
+    out = Image.new("RGB", (W, H), (0, 0, 0))
     d = ImageDraw.Draw(out)
     try:
-        f_cap = ImageFont.truetype(os.path.join(font_dir, "IBMPlexSans-Medium.ttf"), 22) if font_dir else ImageFont.load_default(22)
-        f_head = ImageFont.truetype(os.path.join(font_dir, "IBMPlexSans-SemiBold.ttf"), 30) if font_dir else ImageFont.load_default(30)
+        f_cap = ImageFont.truetype(os.path.join(font_dir, "Inter-Medium.ttf"), 22)
+        f_head = ImageFont.truetype(os.path.join(font_dir, "Inter-SemiBold.ttf"), 30)
     except OSError:
         f_cap = f_head = ImageFont.load_default()
-    d.text((pad, pad - 6), "Mic display: watch faces and settings app, as drawn by the firmware (shell lip shaded)", font=f_head, fill=(232, 235, 239))
+    d.text((pad, pad - 6), "Mic display: watch faces and settings app, as drawn by the firmware (shell lip shaded)", font=f_head, fill=(255, 255, 255))
     # the printed shell: a lip over the glass outside the 424 px window
     lip = Image.new("RGBA", (tile, tile), (0, 0, 0, 0))
     ld = ImageDraw.Draw(lip)
-    ld.ellipse((0, 0, tile - 1, tile - 1), fill=(38, 42, 49, 255))
+    ld.ellipse((0, 0, tile - 1, tile - 1), fill=(44, 44, 46, 255))
     o = tile // 2 - SAFE_R
     hole = Image.new("L", (tile, tile), 0)
     ImageDraw.Draw(hole).ellipse((o, o, tile - o - 1, tile - o - 1), fill=255)
@@ -75,7 +79,7 @@ def sheet(images, font_dir):
         window = Image.new("RGBA", (tile, tile), (0, 0, 0, 0))
         window.paste(screen, (0, 0), hole)
         out.paste(window, (x, y), window)
-        d.text((x + tile / 2, y + tile + 14), caption, font=f_cap, fill=(154, 163, 174), anchor="mt")
+        d.text((x + tile / 2, y + tile + 14), caption, font=f_cap, fill=(142, 142, 147), anchor="mt")
     out.save(os.path.join(OUT, "contact_sheet.png"), optimize=True)
 
 

@@ -1,10 +1,32 @@
 // Mic-stand audio display: Waveshare ESP32-S3-Touch-AMOLED-1.75 (466 x 466 round AMOLED, CO5300 over QSPI,
 // CST9217 capacitive touch on I2C).
-// Shows only what the PC can read (owner, 2026-11-14: no light sensor). Main screen: five watch faces (swipe
-// left/right): needle dial, frequency bars, loudness, talk time, clock. A tap opens the settings app (swipe
-// left/right between settings; Done, a swipe down or 10 s without touch goes back).
-// This file is the hardware: screen, touch, USB serial, flash. Everything drawn and every gesture is in ui.h,
-// which firmware/tools/previews.py also compiles on the PC to render docs/previews/settings/.
+// Shows only what the PC can read (owner, 2026-11-14: no light sensor). Main screen: eight watch faces; the page
+// follows the finger left/right and settles with easing (dial, rings, big number, modular, frequency bars,
+// loudness, talk time, clock). A tap opens the settings app (pages the same way; Done, a swipe down or 10 s
+// without touch goes back).
+// This file is the hardware: screen, touch, USB serial, flash, and the frame pipeline. Everything drawn and
+// every gesture is in ui.h, which firmware/tools/previews.py also compiles on the PC to render
+// docs/previews/settings/.
+//
+// Frame pipeline (2026-11-19, owner: "is it possible to make kmore responsive"). Until 0.2.0 the whole
+// 466 x 466 picture was drawn into PSRAM and all 434 KB sent over QSPI on every redraw, at most 25 a second.
+// Now, per frame:
+//   1. ui.h eases the needle, peak, bars and the page towards their targets (md::animate),
+//   2. this core (the Arduino loop, core 1) draws the screen in 8 bands of 60 rows, alternately into two
+//      small buffers in internal RAM (no PSRAM),
+//   3. each row gets a 32-bit hash; only rows whose hash changed since the last frame are sent, as full-width
+//      runs that start on an even row and have an even height (the CO5300 window is set per run),
+//   4. a task on the other core (core 0) sends band k over QSPI while this core draws band k+1.
+// Frames run up to 60 a second while something moves (needle, page, settling), on news otherwise, and twice
+// a second at rest (clock, timeouts). Every 5 s the board sends C,perf,<render_ms>,<push_ms>,<fps>,<rows>
+// (docs/PROTOCOL.md), so the real numbers can be read on the PC.
+// QSPI clock: 40 MHz, the default of Waveshare's GFX copy (ESP32QSPI_FREQUENCY in
+// examples/arduino/libraries/GFX_Library_for_Arduino/src/databus/Arduino_ESP32QSPI.h), which their Arduino
+// demos use. Not raised by default: the board's display pins (GPIO 4-7, 12, 38) are not the ESP32-S3's SPI2
+// IO_MUX pins, so the signals go through the GPIO matrix, and Espressif only states that GPIO-matrix routing
+// behaves like IO_MUX at 40 MHz or lower (ESP-IDF SPI master guide, ESP32-S3,
+// https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-reference/peripherals/spi_master.html).
+// To try 80 MHz on the real board, build with -DMD_QSPI_HZ=80000000 and watch for a garbled picture.
 //
 // Sources for the pins, the display and touch start-up and the toolchain (read 2026-11-15):
 //   Waveshare wiki:   https://www.waveshare.com/wiki/ESP32-S3-Touch-AMOLED-1.75
@@ -33,8 +55,15 @@
 #include <Wire.h>
 #include <Preferences.h>
 #include <esp_heap_caps.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
+#include <freertos/semphr.h>
 #include "TouchDrvCSTXXX.hpp"
 #include "ui.h"
+
+#ifndef MD_QSPI_HZ
+#define MD_QSPI_HZ 40000000
+#endif
 
 // ---- pins (Waveshare pin_config.h) ----
 #define LCD_SDIO0 4
@@ -61,6 +90,33 @@ bool touchOk = false;
 volatile bool touchIrq = false;
 void IRAM_ATTR onTouchIrq() { touchIrq = true; }
 
+// ---- frame pipeline: two band buffers in internal RAM, a push task on core 0 ----
+const int STRIP_H = 60;                                     // rows per band (even: runs start on even rows)
+const int NSTRIP = (LCD_HEIGHT + STRIP_H - 1) / STRIP_H;    // 8
+const int MAX_RUNS = 8;
+uint16_t *band[2];
+uint32_t rowHash[LCD_HEIGHT];
+bool forceFull = true;                                      // first frame: send every row
+struct Job { uint8_t kind, buf, n, bright; uint16_t y0; uint16_t ry[MAX_RUNS], rh[MAX_RUNS]; };   // kind 0 = rows, 1 = brightness
+QueueHandle_t jobs;
+SemaphoreHandle_t bufFree[2];
+volatile uint32_t pushUs = 0, pushRows = 0;
+
+void pushTask(void *) {   // the only user of the display bus once the loop runs
+  Job j;
+  for (;;) {
+    xQueueReceive(jobs, &j, portMAX_DELAY);
+    if (j.kind == 1) { panel->setBrightness(j.bright); continue; }
+    uint32_t t0 = micros(), rows = 0;
+    for (int i = 0; i < j.n; i++) {
+      panel->draw16bitRGBBitmap(0, j.ry[i], band[j.buf] + (j.ry[i] - j.y0) * LCD_WIDTH, LCD_WIDTH, j.rh[i]);
+      rows += j.rh[i];
+    }
+    pushUs += micros() - t0; pushRows += rows;
+    xSemaphoreGive(bufFree[j.buf]);
+  }
+}
+
 // ---- settings saved in flash (NVS), survive unplugging ----
 Preferences prefs;
 void loadSettings() {
@@ -83,8 +139,11 @@ void saveSettings() {   // only writes what changed (Preferences skips equal val
   prefs.putUChar("peak", md::set.peakIdx);
   prefs.end();
 }
-void setBrightness(uint8_t pct) {   // 0 = screen off (asleep); 10..100 % of the panel's 0..255
-  panel->setBrightness(pct ? (uint8_t)(pct * 255 / 100) : 0);
+uint8_t panelLevel(uint8_t pct) { return pct ? (uint8_t)(pct * 255 / 100) : 0; }   // 0 = screen off (asleep); 10..100 % of 0..255
+void setBrightness(uint8_t pct) {   // queued, so only the push task touches the display bus
+  Job j = {};
+  j.kind = 1; j.bright = panelLevel(pct);
+  xQueueSend(jobs, &j, portMAX_DELAY);
 }
 void sendLine(const char *s) {   // board -> PC; dropped (never blocks) when no PC has the port open
   if (!Serial) return;
@@ -93,23 +152,28 @@ void sendLine(const char *s) {   // board -> PC; dropped (never blocks) when no 
   Serial.write((const uint8_t *)s, n);
   Serial.write('\n');
 }
+void halt(const char *l1, const char *l2) {   // something the firmware cannot run without: say so on the screen
+  panel->setTextColor(RGB565_RED); panel->setTextSize(3);
+  panel->setCursor(90, 210); panel->print(l1);
+  panel->setCursor(90, 250); panel->print(l2);
+  for (;;) delay(1000);
+}
 
 void setup() {
-  Serial.setRxBufferSize(2048);   // a frame push takes ~30 ms; lines wait here meanwhile
+  Serial.setRxBufferSize(2048);   // lines wait here while a frame is drawn
   Serial.setTxTimeoutMs(0);
   Serial.begin(115200);
-  if (!panel->begin()) Serial.println("display init failed");
+  if (!panel->begin(MD_QSPI_HZ)) Serial.println("display init failed");
   panel->fillScreen(RGB565_BLACK);
   loadSettings();
-  setBrightness(md::set.brightness);
-  md::fb = (uint16_t *)heap_caps_malloc(md::W * md::H * 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  if (!md::fb) {   // PSRAM switched off in the build settings: say so on the screen
-    panel->setTextColor(RGB565_RED); panel->setTextSize(3);
-    panel->setCursor(90, 200); panel->print("PSRAM is off.");
-    panel->setCursor(90, 240); panel->print("Build with");
-    panel->setCursor(90, 280); panel->print("OPI PSRAM.");
-    for (;;) delay(1000);
+  panel->setBrightness(panelLevel(md::set.brightness));
+  for (int b = 0; b < 2; b++) {
+    band[b] = (uint16_t *)heap_caps_malloc(LCD_WIDTH * STRIP_H * 2, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    if (!band[b]) halt("Not enough RAM", "for the frame.");
+    bufFree[b] = xSemaphoreCreateBinary();
+    xSemaphoreGive(bufFree[b]);
   }
+  jobs = xQueueCreate(6, sizeof(Job));
   touch.setPins(TP_RESET, TP_INT);
   touchOk = touch.begin(Wire, CST92XX_SLAVE_ADDRESS, IIC_SDA, IIC_SCL);
   if (touchOk) {
@@ -118,39 +182,93 @@ void setup() {
     pinMode(TP_INT, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(TP_INT), onTouchIrq, FALLING);
   } else Serial.println("touch init failed: the faces still work, the settings app cannot open");
+  xTaskCreatePinnedToCore(pushTask, "push", 4096, nullptr, 2, nullptr, 0);   // core 0 is free: no Wi-Fi in use
   md::sendLine = sendLine;
   md::onBrightness = setBrightness;
   md::onSave = saveSettings;
   md::begin(millis());
-  md::render(millis());
-  panel->draw16bitRGBBitmap(0, 0, md::fb, md::W, md::H);
 }
 
-// ---- touch: read while the controller signals or a finger is down; up = no report for 120 ms ----
-bool fingerDown = false;
-uint32_t lastPoint = 0, lastPoll = 0;
+// ---- touch: read while the controller signals or a finger is down. The CST9217 sends a last report with no
+// finger when it is lifted (SensorLib's getPoint returns 0 for it, TouchDrvCST92xx.cpp "Release finger"): that
+// ends the touch 25 ms later unless a point follows; without it, 120 ms with no report counts as lifted. ----
+bool fingerDown = false, liftSeen = false;
+uint32_t lastPoint = 0, lastPoll = 0, liftAt = 0;
 void pollTouch(uint32_t now) {
   if (!touchOk) return;
   noInterrupts();
   bool irq = touchIrq;
   touchIrq = false;
   interrupts();
-  if (irq || (fingerDown && now - lastPoll >= 15)) {
+  if (irq || (fingerDown && now - lastPoll >= 10)) {
     lastPoll = now;
     int16_t x[2], y[2];
     if (touch.getPoint(x, y, 1)) {
-      lastPoint = now;
+      lastPoint = now; liftSeen = false;
       if (!fingerDown) { fingerDown = true; md::touchDown(x[0], y[0], now); }
       else md::touchMove(x[0], y[0], now);
-    }
+    } else if (irq && fingerDown && !liftSeen) { liftSeen = true; liftAt = now; }
   }
-  if (fingerDown && now - lastPoint > 120) { fingerDown = false; md::touchUp(now); }
+  if (fingerDown && ((liftSeen && now - liftAt >= 25) || now - lastPoint > 120)) { fingerDown = false; liftSeen = false; md::touchUp(now); }
 }
 
-// ---- serial input ----
+// ---- one frame ----
+static inline uint32_t hashRow(const uint16_t *p) {   // FNV-1a over the row's 233 32-bit words
+  const uint32_t *w = (const uint32_t *)p;
+  uint32_t h = 2166136261u;
+  for (int i = 0; i < LCD_WIDTH / 2; i++) h = (h ^ w[i]) * 16777619u;
+  return h;
+}
+uint32_t renderUs = 0, frames = 0;
+void drawFrame(uint32_t now) {
+  uint32_t t = micros();
+  md::animate(now);
+  uint32_t busy = micros() - t;
+  for (int s = 0; s < NSTRIP; s++) {
+    int y0 = s * STRIP_H, y1 = y0 + STRIP_H > LCD_HEIGHT ? LCD_HEIGHT : y0 + STRIP_H, b = s & 1;
+    xSemaphoreTake(bufFree[b], portMAX_DELAY);   // wait until core 0 has sent what was in this buffer
+    t = micros();
+    md::renderBand(now, y0, y1, band[b]);
+    Job j = {};
+    j.kind = 0; j.buf = b; j.y0 = y0;
+    auto addRun = [&](int a, int e) {
+      if (j.n > 0 && a - (j.ry[j.n - 1] + j.rh[j.n - 1]) <= 4) { j.rh[j.n - 1] = e - j.ry[j.n - 1]; return; }   // close runs merge
+      if (j.n == MAX_RUNS) { j.rh[j.n - 1] = e - j.ry[j.n - 1]; return; }
+      j.ry[j.n] = a; j.rh[j.n] = e - a; j.n++;
+    };
+    int start = -1;
+    for (int y = y0; y < y1; y += 2) {   // row pairs: every run starts on an even row and has an even height
+      const uint16_t *r = band[b] + (y - y0) * LCD_WIDTH;
+      uint32_t h1 = hashRow(r), h2 = hashRow(r + LCD_WIDTH);
+      bool changed = forceFull || h1 != rowHash[y] || h2 != rowHash[y + 1];
+      rowHash[y] = h1; rowHash[y + 1] = h2;
+      if (changed && start < 0) start = y;
+      if (!changed && start >= 0) { addRun(start, y); start = -1; }
+    }
+    if (start >= 0) addRun(start, y1);
+    busy += micros() - t;
+    if (j.n) xQueueSend(jobs, &j, portMAX_DELAY); else xSemaphoreGive(bufFree[b]);
+  }
+  forceFull = false;
+  renderUs += busy; frames++;
+}
+
+// ---- serial input, frames, the perf line ----
 char lineBuf[600];
 int len = 0;
-uint32_t lastDraw = 0;
+uint32_t lastDraw = 0, perfAt = 0;
+const uint32_t FRAME_MS = 16;   // at most about 60 frames a second, the panel's own refresh rate
+void reportPerf(uint32_t now) {   // C,perf,<render ms per frame>,<push ms per frame>,<frames per second>,<rows sent per frame>
+  float secs = (now - perfAt) / 1000.0f;
+  uint32_t pu = pushUs, pr = pushRows;
+  pushUs = 0; pushRows = 0;
+  char t[80];
+  if (frames) snprintf(t, sizeof t, "C,perf,%.1f,%.1f,%.1f,%lu", renderUs / 1000.0f / frames, pu / 1000.0f / frames, frames / secs,
+                       (unsigned long)(pr / frames));
+  else snprintf(t, sizeof t, "C,perf,-,-,0.0,0");
+  sendLine(t);
+  renderUs = 0; frames = 0; perfAt = now;
+}
 void loop() {
   uint32_t now = millis();
   while (Serial.available()) {
@@ -160,11 +278,11 @@ void loop() {
   }
   pollTouch(now);
   md::tick(now);
+  if (now - perfAt >= 5000) reportPerf(now);
   if (md::asleep) { delay(5); return; }
-  // redraw on news (at most 25 a second), and twice a second otherwise for timeouts and the clock
-  if ((md::dirty && now - lastDraw >= 40) || now - lastDraw >= 500) {
+  bool moving = md::animating(now);
+  if (((md::dirty || moving) && now - lastDraw >= FRAME_MS) || now - lastDraw >= 500) {
     lastDraw = now; md::dirty = false;
-    md::render(now);
-    panel->draw16bitRGBBitmap(0, 0, md::fb, md::W, md::H);
-  }
+    drawFrame(now);
+  } else delay(1);
 }

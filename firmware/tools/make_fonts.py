@@ -1,66 +1,75 @@
-"""Make firmware/mic_display/fonts.h: IBM Plex glyphs as 4-bit alpha bitmaps.
+"""Make firmware/mic_display/fonts.h: Inter glyphs as 4-bit alpha bitmaps.
 
-The display uses the same typefaces as the companion page (IBM Plex Sans 500/600,
-IBM Plex Mono 600) at the page's sizes scaled from 240 px to 466 px (x 1.9417).
+Typeface (2026-11-19, "apple style"): Inter 4.1 by Rasmus Andersson, a free look-alike of Apple's SF Pro
+(SF Pro itself may not be redistributed). Inter for text, Inter Display (the same family drawn for large
+sizes) for the big numerals. SIL Open Font License 1.1; the licence travels with the files in
+firmware/tools/fonts/OFL.txt. Source: https://github.com/rsms/inter/releases/tag/v4.1 (Inter-4.1.zip,
+sha256 9883fdd4a49d4fb66bd8177ba6625ef9a64aa45899767dde3d36aa425756b11e), files from extras/ttf/.
+The four TTFs used are committed in firmware/tools/fonts/, so nothing needs downloading.
 
-Fonts: IBM Plex, SIL Open Font License 1.1, Copyright IBM Corp.
-Download the three TTF files from IBM's repository into one folder:
-  https://raw.githubusercontent.com/IBM/plex/master/packages/plex-sans/fonts/complete/ttf/IBMPlexSans-Medium.ttf
-  https://raw.githubusercontent.com/IBM/plex/master/packages/plex-sans/fonts/complete/ttf/IBMPlexSans-SemiBold.ttf
-  https://raw.githubusercontent.com/IBM/plex/master/packages/plex-mono/fonts/complete/ttf/IBMPlexMono-SemiBold.ttf
+Numeral fonts get tabular figures (every digit on the same advance, the glyph centred in it), so a changing
+number never shifts sideways on the glass, as on Apple Watch.
 
-Run (any Python 3 with Pillow):
-  python make_fonts.py <folder with the TTFs> ../mic_display/fonts.h
+Run (the project Python has Pillow), from the repository folder:
+  python firmware/tools/make_fonts.py [font folder, default firmware/tools/fonts] [out, default firmware/mic_display/fonts.h]
 """
 import os
 import sys
 
 from PIL import Image, ImageDraw, ImageFont
 
+HERE = os.path.dirname(os.path.abspath(__file__))
 ASCII = "".join(chr(c) for c in range(32, 127))
 LATIN1 = "".join(chr(c) for c in range(0xA0, 0x100))   # device names can hold letters like ä, ö, å
-DASHES = "\u2013\u2212\u221e"   # en dash, minus sign, infinity: "–∞", "−18.4"
+DASHES = "–−∞"   # en dash, minus sign, infinity: "–∞", "−18.4"
+NUMS = " -.0123456789:%–−∞"
 
-# name, file, px (page px x 466/240 where the page draws the same thing), characters
+# name, file, px, characters, tabular figures. Sizes are px on the 466 px glass (about 10.6 px per mm).
 FONTS = [
-    ("F_SMALL", "IBMPlexSans-Medium.ttf", 21, ASCII + LATIN1 + DASHES),   # page 11 px: tick labels, dBFS, rate, device name, hints
-    ("F_MSG", "IBMPlexSans-Medium.ttf", 31, ASCII + LATIN1 + DASHES),     # page 16 px 500: "waiting for PC", session lines, device names in settings
-    ("F_WARN", "IBMPlexSans-SemiBold.ttf", 31, ASCII),           # page 16 px 600: "NO SIGNAL"; settings titles, "Done"
-    ("F_CHIP", "IBMPlexSans-SemiBold.ttf", 27, ASCII),           # page 14 px 600: "REC" / "LIVE" (parked, MD-001)
-    ("F_BIG", "IBMPlexMono-SemiBold.ttf", 50, " -0123456789–−∞"),   # page 26 px mono 600: the dB number, "–∞"
-    ("F_LABEL", "IBMPlexSans-SemiBold.ttf", 19, ASCII),          # page 10 px 600: tracked capitals (face and settings category labels)
-    ("F_VALUE", "IBMPlexSans-SemiBold.ttf", 44, ASCII),          # settings values in words ("Muted", "15 min")
-    ("F_HUGE", "IBMPlexMono-SemiBold.ttf", 82, " -.0123456789:%–−∞"),   # page 42 px mono 600: LUFS, talk time, clock, settings numbers
+    ("F_MINI", "Inter-SemiBold.ttf", 17, ASCII, False),             # units inside the small complications
+    ("F_CAP", "Inter-Medium.ttf", 22, ASCII + LATIN1 + DASHES, True),   # scale numbers, units, one-line notes
+    ("F_BODY", "Inter-Medium.ttf", 30, ASCII + LATIN1 + DASHES, True),  # device names, secondary lines, date
+    ("F_TITLE", "Inter-SemiBold.ttf", 34, ASCII + DASHES, True),    # settings titles, Done, "No signal", complication values
+    ("F_VALUE", "InterDisplay-SemiBold.ttf", 50, ASCII + DASHES, True),   # settings values in words, modular face's time
+    ("F_NUM", "InterDisplay-SemiBold.ttf", 76, NUMS, True),         # the level number, settings numbers
+    ("F_HUGE", "InterDisplay-Medium.ttf", 104, NUMS, True),         # clock, talk time, LUFS
+    ("F_GIANT", "InterDisplay-Medium.ttf", 156, " 0123456789–−∞", True),   # minimal face
 ]
 
 
-def build(name, path, px, chars):
+def build(path, px, chars, tnum):
     font = ImageFont.truetype(path, px)
+    digit_adv = max(font.getlength(d) for d in "0123456789")
     glyphs, data = [], bytearray()
     for ch in sorted(set(chars), key=ord):
         x0, y0, x1, y1 = font.getbbox(ch, anchor="ls")
         w, h = max(0, x1 - x0), max(0, y1 - y0)
-        adv = round(font.getlength(ch) * 4)   # quarter pixels
+        adv_px = font.getlength(ch)
+        shift = 0
+        if tnum and ch.isdigit():
+            shift = round((digit_adv - adv_px) / 2)
+            adv_px = digit_adv
+        adv = round(adv_px * 4)   # quarter pixels
         off = len(data)
         if w and h:
             img = Image.new("L", (w, h), 0)
             ImageDraw.Draw(img).text((-x0, -y0), ch, font=font, fill=255, anchor="ls")
-            px_ = list(img.tobytes())
-            nib = [(v * 15 + 127) // 255 for v in px_]
+            nib = [(v * 15 + 127) // 255 for v in img.tobytes()]
             if len(nib) % 2:
                 nib.append(0)
             for i in range(0, len(nib), 2):
                 data.append((nib[i] << 4) | nib[i + 1])
-        glyphs.append((ord(ch), off, w, h, x0, y0, adv))
-    ascent, descent = font.getmetrics()
+        glyphs.append((ord(ch), off, w, h, x0 + shift, y0, adv))
+    ascent, _ = font.getmetrics()
     return glyphs, data, ascent
 
 
 def main():
-    src, out = sys.argv[1], sys.argv[2]
+    src = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "fonts")
+    out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, "..", "mic_display", "fonts.h")
     lines = [
         "// Generated by firmware/tools/make_fonts.py. Do not edit by hand.",
-        "// IBM Plex Sans / IBM Plex Mono, SIL Open Font License 1.1, Copyright IBM Corp.",
+        "// Inter / Inter Display 4.1 (Rasmus Andersson), SIL Open Font License 1.1, firmware/tools/fonts/OFL.txt.",
         "// Glyphs: 4-bit alpha, two pixels per byte, high nibble first, row by row.",
         "#pragma once",
         "#include <stdint.h>",
@@ -70,10 +79,10 @@ def main():
         "",
     ]
     total = 0
-    for name, file, px, chars in FONTS:
-        glyphs, data, ascent = build(name, os.path.join(src, file), px, chars)
+    for name, file, px, chars, tnum in FONTS:
+        glyphs, data, ascent = build(os.path.join(src, file), px, chars, tnum)
         total += len(data) + len(glyphs) * 12
-        lines.append(f"// {file} {px} px, {len(glyphs)} glyphs, {len(data)} bytes")
+        lines.append(f"// {file} {px} px, {len(glyphs)} glyphs, {len(data)} bytes{', tabular figures' if tnum else ''}")
         lines.append(f"static const uint8_t {name}_bits[] = {{")
         for i in range(0, len(data), 24):
             lines.append("  " + ",".join(f"0x{b:02x}" for b in data[i:i + 24]) + ",")

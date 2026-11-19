@@ -38,8 +38,8 @@ that field for 1.5 s, 3 s for a device change, so the screen does not flicker ba
 
 | Line | Meaning | Sent | Companion page | PC app (MD-002) |
 |---|---|---|---|---|
-| `C,hello,<firmware>` | The board is here, firmware version (now `0.2.0`). | at start-up, when the `S` stream starts, every 5 s | answers with `H`, `P`, `T` | same, plus `O` |
-| `C,face,<id>` | The face on screen: `dial`, `bars`, `loudness`, `talk`, `clock`. | with every hello and on each swipe | draws the same face; sends `F` only for `bars` | same (no drawing needed) |
+| `C,hello,<firmware>` | The board is here, firmware version (now `0.3.0`). | at start-up, when the `S` stream starts, every 5 s | answers with `H`, `P`, `T` | same, plus `O` |
+| `C,face,<id>` | The face on screen: `dial`, `rings`, `big`, `modular`, `bars`, `loudness`, `talk`, `clock` (`rings`, `big`, `modular` new in 0.3.0; a PC side that does not know an id ignores it). | with every hello and on each swipe | draws the same face; sends `F` only for `bars` | same (no drawing needed) |
 | `C,peakhold,<s>` | The board's Peak hold setting: 0 (off: momentary peak), 1 or 3 s. | with every hello and on change | uses the same hold on its own dial | ignore |
 | `C,reset` | The user cleared peak and clip count on the display. | on the Reset tap | clears its own peak and clip count | ignore |
 | `C,mic,<index>` | Use input `<index>` from the last `P` list. | Input device ‹ › | switches the input it measures | sets the Windows default recording device |
@@ -48,10 +48,11 @@ that field for 1.5 s, 3 s for a device change, so the screen does not flicker ba
 | `C,out,<index>` | Use output `<index>` from the last `O` list. | Output device ‹ › | no answer | sets the Windows default playback device |
 | `C,outvol,<0-100>` | Windows master volume. | PC volume ring or − + | no answer | sets it |
 | `C,outmute,<0/1>` | Mute or unmute the PC's sound. | Output mute tap | no answer | sets it |
+| `C,perf,<render_ms>,<push_ms>,<fps>,<rows>` | How fast the screen runs, averaged over the last 5 s (new in 0.3.0): `render_ms` = time core 1 spends easing and drawing one frame (all 8 bands, hashing included), `push_ms` = time core 0 spends sending one frame's changed rows over QSPI (both run at once, so a frame takes about the larger of the two), `fps` = frames drawn per second (up to 60 while something moves, 2 at rest), `rows` = screen rows sent per frame (of 466). Decimals with a point. `C,perf,-,-,0.0,0` when no frame was drawn (screen asleep). | every 5 s | shows it under Now > Display speed | ignore |
 
 Example, the page and a board after connecting (→ to the board, ← from it):
 ```
-← C,hello,0.2.0
+← C,hello,0.3.0
 ← C,face,dial
 ← C,peakhold,1
 → H,Companion page,2
@@ -60,6 +61,7 @@ Example, the page and a board after connecting (→ to the board, ← from it):
 → S,-142,-38,0,0,48000,Yeti Stereo Microphone
 → L,-184,-201,1694,2712
 ← C,face,bars          (the user swiped)
+← C,perf,7.8,9.6,58.2,212   (every 5 s; example numbers, not measured)
 → F,32,22,31,44,…
 ← C,mic,1              (the user picked the webcam on the display)
 → P,-,-,1,2,Yeti Stereo Microphone,Webcam C920
