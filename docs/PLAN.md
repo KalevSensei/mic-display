@@ -134,7 +134,7 @@ Starting state recorded first: default playback Speakers (Realtek(R) Audio) at 7
 - Printing (decided 2026-11-17): no separate fit coupon. The real D01 and D02 print on the 19 Nov plate with the clamp (the whole plate is under 2 h, so a coupon saves nothing); MI-1 is tested on the real parts. Renders are done (`cad/renders/`); a dimensioned drawing PDF of D01/D02/A00 is still to do (for the project file, not needed to print). Fit the board when it arrives.
 
 ### M05 print booking (booked 2026-11-17)
-- status: booked, not printed. Physical print: not done.
+- status: printed 2026-11-19 at JHC (Kalev has the printed display shell in hand and is fitting the board, same day). Whether every part on the plate came out clean is not yet recorded.
 - **JHC 3D printer 2** (Prusa MK4S, HF 0.4 nozzle), **Thu 19 Nov 10:00–17:00** (extended from 10:00–14:00 on 19 Nov, printer accepted 11:26), booked by Kalev in LUT Outlook (printer as attendee, event title = Kalev's uni email only). JHC is open Mon–Fri 8:30–18:00; the printers need a staff introduction first.
 - File: `cad/print/MD_plate_display_and_arm_clamp_MK4S_HF04_PETG.bgcode`: D01 + D02 + A10 (right-hand) + A11 + A12 on one plate, PETG, **1 h 54 min 37 s, 54.86 g** (read from the file's own metadata: MK4S, nozzle 0.4 high-flow, PETG). Sliced with PrusaSlicer 2.9.7 and the profile `cad/slicing/mk4s_hf04_petg_SPEED.ini` (`md slice`) (0.20 mm SPEED @MK4S HF0.4, Prusament PETG @HF0.4, 2 perimeters, 15 % infill); no supports generated. The editable plate is `cad/print/MD_plate_display_and_arm_clamp.3mf`.
 - If D01/D02 are printed separately: `cad/print/MD_plate_arm_clamp_MK4S_HF04_PETG.bgcode` prints only A10 + A11 + A12 (1 h 29 min 11 s, 41.43 g).
