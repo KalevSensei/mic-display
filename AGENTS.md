@@ -32,7 +32,7 @@ When the two disagree on something on Eino's arm, Eino's call stands. Agents act
 - Print: booked at JHC, **Thu 19 Nov 2026 10:00–14:00, 3D printer 2** (Prusa MK4S, HF 0.4 nozzle), file `cad/print/MD_plate_display_and_arm_clamp_MK4S_HF04_PETG.bgcode` (1 h 55 min, 54.9 g PETG).
 - Board (Waveshare ESP32-S3-Touch-AMOLED-1.75): arrived 17 Nov 2026; flashed 18 Nov with firmware 0.2.0; the needle dial follows the live mic on the glass (Kalev: "the metre was already working quite well"). Touch (M03b) and the companion page in Chrome are tested next.
 - Printing: everything to print and how is in `cad/print/README.md` (Kalev, 2026-11-18: so Eino can print it too).
-- Hardware (`docs/PARTS.md` > Shopping list: 6 × M2×6 for the display, M4 set screws/nuts and the M5 hinge set for the clamp): not bought yet. Eino, 2026-11-18: buy it as designed, no redesign for other screws. Side of the display on Eino's arm not yet confirmed (MD-004).
+- Hardware (`docs/PARTS.md` > Shopping list: 6 × M2×6 for the display, M4 set screws/nuts and the M5 hinge set for the clamp): not bought yet. Eino, 2026-11-18: buy it as designed, no redesign for other screws. Display on the right of Eino's arm (Eino, 2026-11-19: "on the right side"; MD-004 resolved), so the JHC plate file is the right one.
 - Next: flash and test on the desk (M03/M03b), print (M05), buy hardware and fit on Eino's arm (M06), Windows PC app (MD-002), hand-over (M07).
 
 ## Environment (Windows and macOS, always current)

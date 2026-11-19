@@ -91,6 +91,7 @@ Same build from the command line (what is used to verify it): `scripts/md.ps1 fw
 
 ## M06 · Stand adapter #1 for the classmate's microphone arm
 - status: designed in CAD 2026-11-17 (digital), all CAD checks pass; printed: no; fitted on Eino's arm: no.
+- side (Eino, 2026-11-19): display on the user's **right** ("on the right side"), so the right-hand A10 (`A10_PETG_arm_clamp_base_display_right`) is the one to print; MD-004 resolved.
 - input: Eino's SolidWorks 2026 Pack and Go of the arm (A00_Mikrofonivarsi_Yeti_2palkki_v2), read as STEP copies in `cad/reference/arm_eino_step/` (git-ignored; his geometry stays out of git). The adapter sits on the upper arm bar P03_Varsiputki_2palkki_v2, a 30 × 15 × 1.5 rectangular tube.
 
 ### Where it sits and why (traced in CAD through the arm's whole range)

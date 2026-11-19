@@ -32,11 +32,10 @@ Append-only. Items move to "Resolved" and never disappear. Codes: MD-nnn.
 - 2026-11-17: Eino sent a Pack and Go zip (A00_Mikrofonivarsi_Yeti_2palkki_v2_1.zip, 15 SolidWorks 2026 files incl. P03_Varsiputki, about 3.5 MB) as a share link on his LUT OneDrive (email "mic stand", 17 Nov 14:39, uni mail). Next: download it into cad/reference/arm/ (outside git), read the tube with the probe, design the clamp.
 - needed to resume (before 17 Nov): P03_Varsiputki_2palkki_v2.SLDPRT, or better the whole Mikrofonivarsi_Yeti_2palkki_v2 folder or a SolidWorks Pack and Go zip, from the classmate. The reader C:\Users\kalev\tools\swprobe\probe.ps1 opens it in an invisible SolidWorks and lists every tube radius, axis and length.
 
+## Resolved
+
 ### MD-004 · Which side of Eino's arm the display sits on (confirm before printing)
 - owner: Eino
-- status: open 2026-11-18.
+- status: open 2026-11-18; resolved 2026-11-19 (Eino: "on the right side"). The display sits on the user's right; print the right-hand A10, as the JHC plate file already does.
 - what: the JHC plate file prints the right-hand clamp (`A10_PETG_arm_clamp_base_display_right`, display on the user's right beside the Yeti head). AGENTS.md says where the clamp sits is Eino's call, and no decision of his is recorded. If he wants it on the left, print `A10_PETG_arm_clamp_base_display_left.stl` instead (re-slice with `md slice`).
 - done when: Eino's choice is quoted here and in PLAN.md M06.
-
-## Resolved
-- none yet
