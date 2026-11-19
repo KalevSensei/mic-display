@@ -29,7 +29,7 @@ When the two disagree on something on Eino's arm, Eino's call stands. Agents act
 - 2026-11-18: repo live on GitHub (private, KalevSensei/mic-display); Eino invited with write access and sent the handoff prompt (README > Start here with an agent).
 - Display unit D01/D02, mounting interface MI-1 and desk foot A00: designed, fit-checked against Waveshare's board model (`cad/checks/fit_check.json`).
 - Clamp A10–A12 for Eino's arm: designed and checked in CAD, 31 fit checks pass (`cad/checks/arm_adapter_fit_check.json`, plan M06). Not printed, not fitted.
-- Print: booked at JHC, **Thu 19 Nov 2026 10:00–14:00, 3D printer 2** (Prusa MK4S, HF 0.4 nozzle), file `cad/print/MD_plate_display_and_arm_clamp_MK4S_HF04_PETG.bgcode` (1 h 55 min, 54.9 g PETG).
+- Print: booked at JHC, **Thu 19 Nov 2026 10:00–17:00, 3D printer 2** (extended from 14:00 on 19 Nov) (Prusa MK4S, HF 0.4 nozzle), file `cad/print/MD_plate_display_and_arm_clamp_MK4S_HF04_PETG.bgcode` (1 h 55 min, 54.9 g PETG).
 - Board (Waveshare ESP32-S3-Touch-AMOLED-1.75): arrived 17 Nov 2026; flashed 18 Nov with firmware 0.2.0; the needle dial follows the live mic on the glass (Kalev: "the metre was already working quite well"). Touch (M03b) and the companion page in Chrome are tested next.
 - Printing: everything to print and how is in `cad/print/README.md` (Kalev, 2026-11-18: so Eino can print it too).
 - Hardware (`docs/PARTS.md` > Shopping list: 6 × M2×6 for the display, M4 set screws/nuts and the M5 hinge set for the clamp): not bought yet. Eino, 2026-11-18: buy it as designed, no redesign for other screws. Display on the right of Eino's arm (Eino, 2026-11-19: "on the right side"; MD-004 resolved), so the JHC plate file is the right one.
