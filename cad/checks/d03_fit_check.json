@@ -1,0 +1,222 @@
+{
+  "source": "cad/source/md_display_b.py",
+  "waveshare_from_drawing": {
+    "od": 51.0,
+    "body_len": 11.24,
+    "bevel_d": 50.04,
+    "bevel_z": 11.67,
+    "ring_d": 47.96,
+    "depth": 12.1,
+    "aa_d": 43.76,
+    "holes": [
+      [
+        14.7,
+        13.75
+      ],
+      [
+        14.7,
+        -13.75
+      ],
+      [
+        -20.5,
+        0.0
+      ]
+    ],
+    "hole_head_d": 4.0,
+    "header": [
+      16.6,
+      20.5,
+      -11.2,
+      11.2
+    ],
+    "back_pad": [
+      -10.0,
+      10.0,
+      -16.0,
+      16.0
+    ],
+    "back_proud": 0.14,
+    "btn_deg": 33.7,
+    "btn_z": 4.6,
+    "btn_d": 3.8,
+    "btn_r_out": 26.38,
+    "usb_w": 10.1,
+    "usb_h": 4.24,
+    "usb_z": 3.93,
+    "pin_x": 13.9,
+    "pin_z": 4.55,
+    "pin_d": 1.5
+  },
+  "assumed": {
+    "cover_od": 51.0,
+    "screw": "M2",
+    "screw_len": 4.0,
+    "cover_cbore": null
+  },
+  "d03": {
+    "floor": 5.0,
+    "bore_d": 51.4,
+    "wall": 1.6,
+    "lip_id": 49.8,
+    "lip_top": 13.3,
+    "lip_gap": 0.1,
+    "fingers": [
+      0.0,
+      90.0,
+      180.0,
+      215.0,
+      325.0
+    ],
+    "finger_half": 13.0,
+    "slot_w": 1.0,
+    "slot_from": 2.5,
+    "rib_deg": [
+      30.0,
+      150.0,
+      70.0,
+      110.0,
+      245.0,
+      295.0
+    ],
+    "rib_r": 0.5,
+    "rib_reach_d": 50.9,
+    "rib_z": [
+      0.8,
+      9.0
+    ],
+    "btn_slot_w": 6.0,
+    "usb_win": [
+      13.0,
+      7.5,
+      2.0
+    ],
+    "pin_hole_d": 2.6,
+    "pocket": 0.6,
+    "screw_clear": 2.4,
+    "cbore_d": 4.2,
+    "under_head": 2.0
+  },
+  "frame": {
+    "back_face_z": -15.9,
+    "case_back_z": -10.9
+  },
+  "checks": [
+    {
+      "check": "Waveshare case envelope vs D03 (ribs off)",
+      "ok": true,
+      "detail": "overlap 0.0000 mm3"
+    },
+    {
+      "check": "crush ribs bite the \u00d851 case lightly (0 < interference < 2 mm3)",
+      "ok": true,
+      "detail": "0.674 mm3 over 6 ribs"
+    },
+    {
+      "check": "side buttons vs D03",
+      "ok": true,
+      "detail": "overlap 0.0000 mm3"
+    },
+    {
+      "check": "buttons reachable: \u00d83 finger path from each cap outward is free",
+      "ok": true,
+      "detail": "overlaps [0.0, 0.0]"
+    },
+    {
+      "check": "USB-C plug overmold 12.4 x 6.5 goes in fully",
+      "ok": true,
+      "detail": "overlap 0.0000 mm3"
+    },
+    {
+      "check": "small holes beside the USB-C stay open",
+      "ok": true,
+      "detail": "overlaps [0.0, 0.0]"
+    },
+    {
+      "check": "lip catches the \u00d851 edge by 0.4-0.9 and stays off the active area",
+      "ok": true,
+      "detail": "catch 0.6, 3.02 outside \u00d843.76"
+    },
+    {
+      "check": "finger strain while snapping < 2.5 % (PETG yields near 4-5 %)",
+      "ok": true,
+      "detail": "1.34 % over 10.8 mm"
+    },
+    {
+      "check": "floor skin over the MI-1 channel >= 1.0 (groove >= 0.8)",
+      "ok": true,
+      "detail": "1.40 / 1.00"
+    },
+    {
+      "check": "MI-1 channel + groove identical to D02 (|x| < 11, Y < stop + 1.5, r < 25.5)",
+      "ok": true,
+      "detail": "symmetric difference 0.0000 mm3"
+    },
+    {
+      "check": "A00/A12 rail (without bump) vs D03",
+      "ok": true,
+      "detail": "overlap 0.0000 mm3"
+    },
+    {
+      "check": "desk-foot upright vs D03",
+      "ok": true,
+      "detail": "overlap 0.0000 mm3"
+    },
+    {
+      "check": "detent bump meets the groove as in D02",
+      "ok": true,
+      "detail": "D03 10.894 vs D02 10.894 mm3"
+    },
+    {
+      "check": "A12 tilt block (rail + fingers) vs D03, bump excluded",
+      "ok": true,
+      "detail": "overlap 0.0000 mm3"
+    },
+    {
+      "check": "display clears the desk foot base for a USB-C plug",
+      "ok": true,
+      "detail": "50.3 mm"
+    },
+    {
+      "check": "3 holes on the drawing's pattern = the board's standoffs (Waveshare STEP)",
+      "ok": true,
+      "detail": "[(14.7, 13.75), (14.7, -13.75), (-20.5, 0.0)]"
+    }
+  ],
+  "numbers": {
+    "rib_interference_mm3": 0.674,
+    "lip_catch_radial": 0.6,
+    "lip_to_active_area_per_side": 3.02,
+    "lip_above_glass": 1.2,
+    "finger_length": 10.8,
+    "finger_snap_strain_pct": 1.34,
+    "floor_skin_over_channel": 1.4,
+    "floor_skin_over_groove": 1.0,
+    "bump_overlap_nominal_mm3": 10.894,
+    "desk_display_lowest_point_above_base_top": 50.3,
+    "screw_pattern": [
+      [
+        14.7,
+        13.75
+      ],
+      [
+        14.7,
+        -13.75
+      ],
+      [
+        -20.5,
+        0.0
+      ]
+    ],
+    "screw_pattern_equals_board_standoffs": true,
+    "upgrade_screw_length": "original length + 2.00 + the cover's counterbore depth (Kalev measures)",
+    "d03_size": [
+      54.6,
+      54.6,
+      18.3
+    ],
+    "unit_depth_with_d03": 18.3,
+    "d03_volume_mm3": 11708.4,
+    "d03_petg_g_estimate": 14.9
+  },
+  "failed": []
+}

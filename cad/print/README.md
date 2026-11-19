@@ -2,6 +2,13 @@
 
 Everything printed for the mic display is in this folder. All parts are **PETG**, no supports, already laid flat in the right orientation. Totals: 5 parts, 54.9 g, 1 h 55 min on one plate.
 
+## Print now (2026-11-19): D03 only
+The board came in Waveshare's case with the glass fixed to the case's front ring, so the case stays whole and **D03** replaces D01 + D02 (plan M05, "M05 D03"). The clamp parts A10, A11, A12 already printed are fine (MI-1 never changed).
+
+**`D03_display_back_waveshare_case_MK4S_HF04_PETG.bgcode`**: D03 alone, PETG, **29 min 32 s, 10.69 g** (JHC Prusa MK4S, HF 0.4 nozzle; same profile as below). Any other printer: `D03_PETG_display_back_waveshare_case.stl` or `.3mf`, PETG, 0.20 mm, 2 walls, 15 % infill, no supports, back face (the dovetail side) down as it lies.
+
+After printing: push the Waveshare unit in from the front, back cover first, USB-C at the window and the two buttons in the notches, until the fingers click. Then slide it down onto A12 or A00 until it clicks. No screws needed.
+
 ## Fastest: one file, one plate (JHC Prusa MK4S, HF 0.4 nozzle)
 The JHC 3D printers (LUT/LAB) are Prusa MK4S with the high-flow 0.4 nozzle, so this file is ready to print there as is:
 
@@ -38,6 +45,7 @@ Or print the parts one by one from their STL files with the same settings:
 |---|---|---|---|---|---|
 | D01 | `D01_PETG_display_shell.stl` | 1 | 6.2 g | 14 min | front shell around the round screen |
 | D02 | `D02_PETG_display_back_MI1.stl` | 1 | 7.3 g | 17 min | back cover with the slide-on dovetail |
+| D03 | `D03_PETG_display_back_waveshare_case.stl` | 1 | 10.7 g | 30 min | **replaces D01 + D02 for the board in Waveshare's case**: cup the whole case snaps into, slide-on dovetail on the back |
 | A10 | `A10_PETG_arm_clamp_base_display_right.stl` | 1 | 33.1 g | 1 h 10 min | clamp that hangs under the arm's upper bar; display on the user's **right** |
 | A11 | `A11_PETG_arm_clamp_pad.stl` | 1 | 3.9 g | 9 min | pressure pad inside the clamp |
 | A12 | `A12_PETG_arm_MI1_tilt_block.stl` | 1 | 4.6 g | 26 min | tilt hinge block the display slides onto |
@@ -54,4 +62,4 @@ Bought, not printed (details, shops and prices: `docs/PARTS.md`):
 - Assembly and fitting on the arm, step by step: `docs/PLAN.md` M06 "Steps", with drawings in `cad/drawings/A10-A12_arm_adapter_drawings.pdf`.
 
 ## Changing a part
-Parts come from code: `cad/source/md_model.py` (D01, D02, A00) and `cad/source/md_arm_adapter.py` (A10–A12). Change the code, run `md cad` / `md arm` (AGENTS.md > Environment), re-slice with `md slice`, and commit the new files with a LOG line. The mounting interface MI-1 (the dovetail between D02 and A00/A12) never changes once printed.
+Parts come from code: `cad/source/md_model.py` (D01, D02, A00), `cad/source/md_display_b.py` (D03; also writes `W00_waveshare_B_case_envelope.step`, the Waveshare -B case as an envelope built from Waveshare's drawing, not Waveshare's own file) and `cad/source/md_arm_adapter.py` (A10–A12). Change the code, run `md cad` / `md arm` (AGENTS.md > Environment), re-slice with `md slice`, and commit the new files with a LOG line. The mounting interface MI-1 (the dovetail between D02 and A00/A12) never changes once printed.

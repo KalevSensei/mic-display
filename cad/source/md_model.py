@@ -112,19 +112,24 @@ def shell():
     return s.clean()
 
 
+# ---------------------------------------------------------------- MI-1 female side (shared by D02 and D03; never changes)
+def mi1_female_cut():
+    """The void cut into a display back: dovetail channel (20.00 at the floor, Z = back_z + depth; open_w at the
+    back face Z = back_z) from Y = y_open to the stop at Y = y_stop, plus the detent groove across its floor."""
+    zf = P["back_z"] + MI["depth"]
+    h_o, h_f = MI["open_w"] / 2, MI["floor_w"] / 2
+    ch = prism_xz([(-h_o, P["back_z"] - 0.01), (h_o, P["back_z"] - 0.01), (h_f, zf), (-h_f, zf)], MI["y_open"], MI["y_stop"])
+    g = cq.Solid.makeCylinder(MI["groove_r"], MI["open_w"], V(-MI["open_w"] / 2, MI["groove_y"], zf + MI["groove_depth"] - MI["groove_r"]), V(1, 0, 0))
+    return ch.fuse(g)
+
+
 # ---------------------------------------------------------------- D02 back with the female MI-1 channel
 def back():
     r_o = P["od"] / 2
     s = cyl(r_o, P["back_z"], P["split_z"])
     for (x, y) in B["standoff_xy"]:
         s = s.fuse(cyl(P["boss_d"] / 2, P["split_z"] - 0.5, B["standoff_bottom"], x, y))
-    # channel: trapezoid, 20.00 at the floor (Z = back_z + depth), open_w at the back face
-    zf = P["back_z"] + MI["depth"]
-    h_o, h_f = MI["open_w"] / 2, MI["floor_w"] / 2
-    ch = prism_xz([(-h_o, P["back_z"] - 0.01), (h_o, P["back_z"] - 0.01), (h_f, zf), (-h_f, zf)], MI["y_open"], MI["y_stop"])
-    s = s.cut(ch)
-    g = cq.Solid.makeCylinder(MI["groove_r"], MI["open_w"], V(-MI["open_w"] / 2, MI["groove_y"], zf + MI["groove_depth"] - MI["groove_r"]), V(1, 0, 0))
-    s = s.cut(g)
+    s = s.cut(mi1_female_cut())
     # screw holes: clearance through, counterbore from the back face to the head seat
     holes = list(B["standoff_xy"]) + [(P["shell_screw_r"] * math.cos(math.radians(d)), P["shell_screw_r"] * math.sin(math.radians(d))) for d in P["shell_screw_deg"]]
     for (x, y) in holes:

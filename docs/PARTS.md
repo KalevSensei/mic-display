@@ -46,7 +46,7 @@ Eino decided to buy the hardware as designed instead of changing the parts to fi
 
 | Qty | Part | Goes into | Where |
 |---|---|---|---|
-| 6 | M2×6 socket head cap screw, ISO 4762 / DIN 912 | D01/D02: 3 into the board's brass standoffs, 3 into the printed shell | no shop named yet; any hardware shop with M2 |
+| 6 | M2×6 socket head cap screw, ISO 4762 / DIN 912 | D01/D02: 3 into the board's brass standoffs, 3 into the printed shell. With D03 (2026-11-19, board kept in Waveshare's case) none are needed; longer M2 only for D03's optional screw-through (plan M05 "M05 D03") | no shop named yet; any hardware shop with M2 |
 | 2 | M4×10 set screw, hex socket, flat point, ISO 4026 / DIN 913 | A10, push the A11 pad against the arm's tube | K-Rauta (table above) |
 | 2 | M4 hex nut, ISO 4032 / DIN 934 | A10 nut slots, for the set screws | K-Rauta |
 | 1 | M5×25 socket head cap screw, ISO 4762 / DIN 912, exactly 25 mm | A12 tilt hinge | K-Rauta (3 shops) or any DIN 912 M5×25 |
