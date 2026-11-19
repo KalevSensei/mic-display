@@ -1,7 +1,7 @@
 # One-time and after-every-pull setup on Windows. Safe to run again: it only adds or updates what changed.
 #   powershell -ExecutionPolicy Bypass -File scripts\setup-windows.ps1
 # Builds, outside the repo in %LOCALAPPDATA%\mic-display (override with $env:MD_HOME):
-#   Python 3.12 venv with the pinned CAD packages, arduino-cli + esp32 core + Waveshare's libraries,
+#   Python 3.12 venv with the pinned CAD and PC-app packages, arduino-cli + esp32 core + Waveshare's libraries,
 #   PrusaSlicer 2.9.7 (portable). Installs the repo's git hooks. Ends with `md doctor`.
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
@@ -29,6 +29,9 @@ $vpy = Join-Path $venv 'Scripts\python.exe'
 & $vpy -m pip install --disable-pip-version-check -q --upgrade pip
 & $vpy -m pip install --disable-pip-version-check -q -r (Join-Path $repo 'env\requirements-cad.txt') -c (Join-Path $repo 'env\constraints-cad.txt')
 if ($LASTEXITCODE -ne 0) { throw 'pip install failed' }
+# the Windows PC app (pcapp/, `md app`)
+& $vpy -m pip install --disable-pip-version-check -q -r (Join-Path $repo 'env\requirements-app.txt') -c (Join-Path $repo 'env\constraints-app.txt') -c (Join-Path $repo 'env\constraints-cad.txt')
+if ($LASTEXITCODE -ne 0) { throw 'pip install (PC app) failed' }
 & $vpy -I (Join-Path $repo 'scripts\md.py') toolchain
 if ($LASTEXITCODE -ne 0) { throw 'toolchain install failed' }
 & $vpy -I (Join-Path $repo 'scripts\md.py') doctor

@@ -40,7 +40,7 @@ Versions: Arduino IDE 2, board package **esp32 by Espressif Systems 3.3.10**, li
 Same build from the command line (what is used to verify it): `scripts/md.ps1 fw-build` / `scripts/md.sh fw-build`; upload: `fw-flash [PORT]`. Both call arduino-cli 1.5.1 with FQBN `esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=opi,CDCOnBoot=cdc` (env/pins.json).
 
 ## M03b · Touch: watch faces and a settings app on the display
-- status: **0.3.0 flashed to the board 2026-11-19** (COM3, hash verified; measured on the board with `feed_mic.py`: `C,perf` 16.6–16.9 ms render, 0.8–1.2 ms push, 51–59 fps; touch, swipe feel and how it looks on the glass still to check with Kalev) (build: 727,906 bytes of program storage = 23 % of 3 MB, 28,588 bytes of RAM for globals = 8 %, plus two 55.9 KB band buffers taken from the 299 KB free heap at start; PSRAM is no longer used for the picture). The PC settings stay greyed ("Needs the PC app") until the Windows PC app exists (open item MD-002), except Input device, which the companion page already answers.
+- status: **0.3.0 flashed to the board 2026-11-19** (COM3, hash verified; measured on the board with `feed_mic.py`: `C,perf` 16.6–16.9 ms render, 0.8–1.2 ms push, 51–59 fps; touch, swipe feel and how it looks on the glass still to check with Kalev) (build: 727,906 bytes of program storage = 23 % of 3 MB, 28,588 bytes of RAM for globals = 8 %, plus two 55.9 KB band buffers taken from the 299 KB free heap at start; PSRAM is no longer used for the picture). The PC settings stay greyed ("Needs the PC app") with the companion page, except Input device; with the Windows PC app (M03c, built 2026-11-19) all six are live.
 - owner's words, verbatim:
   - 2026-11-15: "So can we control settings with the touch screen?"
   - 2026-11-15: "Like it shows regular settings in a speedometer looking thing, if u tap it opens a settings app we design"
@@ -85,6 +85,33 @@ Same build from the command line (what is used to verify it): `scripts/md.ps1 fw
 - that the release report ends a tap at once (settings open faster) and a finger held still is not taken as lifted;
 - that a flick and a slow drag both feel right (93 px / 0.35 px/ms) and the 14 px start of a swipe does not steal taps;
 - that Inter at 17 px (the units inside the modular face's complications) is readable at arm's length.
+
+## M03c · Windows PC app: the display's data source and its PC settings live (MD-002)
+- status: **built and checked on Kalev's laptop 2026-11-19** with the board on COM3 (firmware 0.3.1): all six PC settings live on the display, About says "PC app", 22 of 22 end-to-end checks pass (below). Still to do: Kalev taps each PC setting on the glass (step 3 below), a real unplug/replug, a Windows restart with Start with Windows on, a second output device.
+- why: Kalev, 2026-11-19, after opening the settings on 0.3.0: "yea fine but it says need an app". A browser cannot change Windows sound settings; this app can, and it replaces the Chrome tab as the display's data source.
+- what it is: `pcapp/mic_display_app.py` (link, measuring, tray) and `pcapp/core_audio.py` (Windows Core Audio through comtypes), run by the project Python. Windows only; on a Mac the companion page stays the data source.
+  - finds the board by its USB id (Espressif VID 0x303A), reopens the port after unplug, replug or sleep (a write failure or 12 s without a line from the board counts as a dead link) and never stops on a vanished port. When the companion page holds the port the tooltip says "COM3 busy: close the companion page ..." and the app connects by itself once the page lets go: only one of the two can hold the port.
+  - measures the Windows default recording device through WASAPI (PortAudio via sounddevice), every sample, channels mixed to mono as the page does: S 20 a second (level with the page's VU ballistics, peak since the last line, clip held 1 s at 98 % of full scale or more, the device's own sample rate, name); F (32 bands, computed like the page's Web Audio analyser) only while the display shows the bars face; L 4 a second: short-term (3 s) and integrated LUFS per ITU-R BS.1770 (K-weighting at the device's rate with libebur128's coefficients; 400 ms blocks, 75 % overlap, gates −70 LUFS and −10 LU; a 1 kHz tone at −20 dBFS reads −23.0 LUFS at 48 and 44.1 kHz) and talk time; T on connect and every minute; H `PC app` every 2 s.
+  - P and O from Windows (default device, its mute and volume 0–100, every active device by name): on connect, every 2 s and within 0.25 s of any change made in Windows.
+  - the display's settings: Mic mute and Input volume act on the default recording device; PC volume and Output mute on the default playback device; Input device and Output device ‹ › switch the Windows default device (default and multimedia roles, and communications too unless it was set to another device on purpose). Switching uses IPolicyConfig, the undocumented interface Windows' own Sound panel uses; its layout is taken from EarTrumpet (github.com/File-New-Project/EarTrumpet, `EarTrumpet/Interop/MMDeviceAPI/IPolicyConfig.cs`). A new default microphone is measured at once.
+  - tray icon (grey dot: looking for the display, amber: port busy, green: connected); menu: the status line, **Start with Windows** (a per-user entry under HKCU\Software\Microsoft\Windows\CurrentVersion\Run, no admin), **Quit**. Log: `%LOCALAPPDATA%\mic-display\pc-app.log`. Only one copy runs at a time.
+  - load on the laptop: about 0.11 CPU seconds per second (0.7 % of its 16 threads) and 109 MB of memory, measured 2026-11-19.
+- firmware 0.3.1 (2026-11-19, flashed to the board on COM3, 729,088 bytes written, hash verified): adds only the `C,pc` line (what the settings screens hold, docs/PROTOCOL.md), sent with every hello and within 0.1 s of a change, so the PC side can check the link end to end; About shows 0.3.1.
+
+### How to run it (Kalev)
+1. Once, and again after any pull that changes `env/`: `powershell -ExecutionPolicy Bypass -File scripts\setup-windows.ps1` (puts the app's packages into the project Python).
+2. Close the companion page's tab if it is connected, then run `scripts\md.ps1 app`. No window opens; a round microphone icon appears in the notification area (bottom right, possibly under the ^ arrow). A green dot means connected; hover it for the status.
+3. On the display, tap the face and swipe to Mic mute, Input device, Input volume, Output device, PC volume and Output mute: each one now works and follows changes made in Windows.
+4. Right-click the icon > **Start with Windows**, so it runs after every restart. **Quit** stops it.
+5. If something is wrong: `scripts\md.ps1 app --console` runs it in the terminal with a log (add `--debug` for every line sent and received; type a board line such as `C,mute,1` to act as the display). Quit the tray copy first, since only one runs at a time.
+
+### Checked on Kalev's laptop (2026-11-19, board on COM3, firmware 0.3.1)
+Starting state recorded first: default playback Speakers (Realtek(R) Audio) at 70 %, not muted; default recording Microphone Array (AMD Audio Device) at 65 %, not muted; Microphone (Camo) at 80 %, not muted; the same device in all three roles. Restored exactly at the end (the Core Audio snapshot before and after is identical).
+- the board's `C,pc` line: all six PC settings live, client "PC app"; S 20 a second, L 4 a second, F only on the bars face.
+- display side, **simulated** (the glass was not touched: the board's own lines `C,mute,1`, `C,mute,0`, `C,vol,40`, `C,outvol,30`, `C,outmute,1`, `C,outmute,0`, `C,mic,0`, `C,mic,1`, `C,out,0` were fed into the app): Windows changed each time (read back through Core Audio) and the board held the new value 0.03–0.12 s later; `C,mic,0` made Camo the default in all three roles and the app measured it at once.
+- Windows side (mute, input volume, PC volume, output mute, default microphone, changed through Core Audio as the Windows mixer does): the board held each change 0.08–0.5 s later.
+- Output device: the laptop has one active output, so ‹ › could only re-select it (works, nothing changes); switching between two outputs is not yet seen.
+- the port held by another program: the status says busy, and the app connects by itself once it is released; a port that does not exist: retries, no crash; a second copy: refuses to start; Start with Windows on and off: the Run entry appears and disappears.
 
 ## M04 · Mute-light sensor (dropped)
 - status: dropped 2026-11-14 (owner: "i think we can skip the light sensor, letys use only data the pc can pick up")
@@ -160,14 +187,14 @@ Same build from the command line (what is used to verify it): `scripts/md.ps1 fw
 ## M07 · Hand-over to the classmate
 - status: later
 - why: the build is finished when it works on his PC and his stand.
-1. His PC is a Windows PC (owner, 2026-11-14: "he has pc"): the companion page runs in Chrome or Edge there.
+1. His PC is a Windows PC (owner, 2026-11-14: "he has pc"): the PC app (M03c) runs there and makes the PC settings live; until its one-file installer exists (MD-005), the companion page in Chrome or Edge is the route with nothing to install.
 2. Clip it on, plug in USB, open the companion page in Chrome/Edge and connect once.
 3. The companion page gets a hosted address before hand-over, so his PC needs nothing installed: he opens a link.
 
 ## Not yet verified
 - Touch (M03b), only checkable on the real board: that the touch points land where the finger is (Waveshare's X and Y mirroring is used as in their LVGL demo); that a finger held still keeps reporting (the firmware treats 120 ms without a report as "finger lifted"; a controller that stops reporting a still finger would end a ring drag early); that taps on the mic arm stay few and quiet enough; that the swipe distances (70 px sideways, 90 px down) and the 30 px tap limit feel right; that brightness 10 % is still readable; screen sleep and wake.
 - The clip ring now sits at radius 207–212 px (page r 107.75), inside the shell's 424 px window; before M03b it was at 219–231 px, under the shell lip and invisible once mounted. The device name under the dial is cut with "..." at 190 px so it stays clear of the clip ring.
-- Loudness (LUFS) on the page is measured from the K-weighted signal sampled once per animation frame, so it is close to a meter's reading but not certified; the Windows PC app (MD-002) can measure it sample-exact.
+- Loudness (LUFS) on the page is measured from the K-weighted signal sampled once per animation frame, so it is close to a meter's reading but not certified. The Windows PC app (M03c) measures it from every sample per ITU-R BS.1770 (a −20 dBFS 1 kHz tone reads −23.0 LUFS); not compared with a certified meter.
 - The firmware compiles for the bought board (2026-11-15, zero errors) but has not run on it: the board has not arrived. Checked only on the real board (M03 steps 7–8): the screen starts and the picture sits centred in the round glass (Waveshare's column offset of 6 is used as in their demo); the dial looks like the page's; the frame rate (0.3.0 sends only changed rows; estimates and the `C,perf` line in M03b); the port name Chrome shows; that the default brightness (80 %, 204 of 255; changeable on the display under Brightness) is comfortable.
 - AMOLED screens can keep a faint ghost of a picture that stays still for many hours. The dial's scale is static; Screen sleep (default 15 min without touch or sound, set on the display) turns it dark when nobody records; if a ghost still shows, lower Brightness on the display.
 - The companion page was tested with the demo signal; Kalev's own microphone is tested when he opens it (M01 step 2).

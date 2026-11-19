@@ -1,6 +1,6 @@
 # Mic-stand audio display
 
-A round display that clips onto a microphone stand and shows the microphone's live state from what the PC can read: a needle dial of the level, clipping, sample rate, device and a no-signal warning. Swipe for other watch faces (rings, big number, modular, frequency bars, loudness, talk time, clock; Apple-watch style since firmware 0.3.0); tap for a settings app (the display's own settings now, the PC's sound settings once the Windows PC app exists).
+A round display that clips onto a microphone stand and shows the microphone's live state from what the PC can read: a needle dial of the level, clipping, sample rate, device and a no-signal warning. Swipe for other watch faces (rings, big number, modular, frequency bars, loudness, talk time, clock; Apple-watch style since firmware 0.3.0); tap for a settings app (the display's own settings and, with the Windows PC app, the PC's sound settings: mic mute, input and output device, input volume, PC volume, output mute).
 
 Uni engineering project (LAB, Engineering Curiosity) by Kalev Soininen with Eino Laakso, started 2026-11-14. Built and tested on Kalev's own PC first; mounted on Eino's custom Yeti mic arm and installed on his PC last.
 
@@ -24,6 +24,7 @@ Set up by hand instead: Windows `powershell -ExecutionPolicy Bypass -File script
 
 ## How it works
 - **Companion page** (`companion/index.html`, runs in Chrome or Edge on Windows or Mac, nothing to install): listens to the microphone, measures level, peak and clipping, reads the sample rate and device name, draws the exact dial the display will show, and streams it to the display over the USB cable (Web Serial). It follows the face the display shows and switches its input when the display asks.
+- **PC app** (`pcapp/`, Windows; `scripts\md.ps1 app`): does the same as the page without a browser, from Windows' own audio, and makes the display's PC settings live (Windows mic mute, input volume, default microphone, PC volume, output mute, default output). Sits in the notification area; can start with Windows. Only one of the two (page or app) can be connected to the display at a time. How to run it: docs/PLAN.md M03c.
 - **Display** (`firmware/mic_display/`): Waveshare ESP32-S3-Touch-AMOLED-1.75, a 1.75" round 466 × 466 AMOLED with the processor on its back, no wiring. Draws the same faces as the page, in the page's typeface (Inter), from what the page sends; shows "No signal" after 3 s of silence (the mic's own mute) and "Waiting for PC" when nothing arrives. USB powers everything. Touch: swipe between faces, tap for settings (docs/PLAN.md M03b). Build and flash: docs/PLAN.md M03. (The first firmware for the XIAO ESP32C3 + GC9A01 basic build is in git history, commit be7ddd2.)
 
 ## Files
@@ -33,6 +34,7 @@ Set up by hand instead: Windows `powershell -ExecutionPolicy Bypass -File script
 - `env/`, `scripts/`: pinned environment, setup scripts and the `md` command.
 - `docs/PROTOCOL.md`: every line the PC and the display send each other.
 - `docs/previews/settings/`: pictures of every face and settings screen, drawn by the firmware's own code (`contact_sheet.png` shows them all).
-- `docs/OPEN_ITEMS.md`: parked and open items (MD-002: the Windows PC app).
+- `pcapp/`: the Windows PC app (`mic_display_app.py`, `core_audio.py`).
+- `docs/OPEN_ITEMS.md`: parked and open items (MD-005: a one-file installer for the PC app).
 - `docs/PARTS.md`: what to buy (one Electrokit order) and what comes from JHC.
 - `docs/WIRING.md`: every wire, pin by pin (basic build; the upgraded board needs none).

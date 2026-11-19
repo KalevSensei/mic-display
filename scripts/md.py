@@ -18,6 +18,8 @@ Commands
   fw-flash [PORT]     compile and upload; finds the board's port by itself when only one is plugged in
   companion           serve the companion page on http://127.0.0.1:8765 (open it in Chrome or Edge)
   previews            re-render docs/previews/settings from firmware/mic_display/ui.h
+  app [--console]     Windows only: start the PC app (pcapp/), the display's data source with live PC settings;
+                      no window, an icon in the notification area. --console runs it here with a log instead
 
 Everything big lives outside the repo, in MD_HOME (default: %LOCALAPPDATA%\\mic-display on Windows,
 ~/.mic-display on macOS), so a repo inside OneDrive or iCloud never syncs gigabytes of tools.
@@ -61,6 +63,7 @@ def env_hash() -> str:
     """Hash of every file that defines the environment; a change means: run setup again."""
     h = hashlib.sha256()
     for rel in ["env/pins.json", "env/requirements-cad.txt", "env/constraints-cad.txt",
+                "env/requirements-app.txt", "env/constraints-app.txt",
                 "scripts/md.py", "scripts/setup-windows.ps1", "scripts/setup-macos.sh"]:
         p = REPO / rel
         if p.exists():
@@ -207,6 +210,16 @@ def cmd_doctor(_):
             line(mod, pin is None or v.startswith(pin), v or "installed")
         except Exception as e:  # noqa: BLE001
             line(mod, False, str(e))
+    if WIN:   # the PC app's packages (env/requirements-app.txt), Windows only: imported, at the pinned version
+        from importlib.metadata import version
+        for dist, mod in [("pyserial", "serial"), ("sounddevice", "sounddevice"), ("comtypes", "comtypes"), ("pystray", "pystray")]:
+            pin = PINS["pc_app"][dist]
+            try:
+                __import__(mod)
+                v = version(dist)
+                line(f"PC app: {dist}", v == pin, v)
+            except Exception as e:  # noqa: BLE001
+                line(f"PC app: {dist}", False, f"{e} (run scripts/setup-windows.ps1)")
     have = subprocess.run([str(ARD_EXE), "version"], capture_output=True, text=True).stdout if ARD_EXE.exists() else ""
     line("arduino-cli", PINS["firmware"]["arduino_cli"] in have, have.strip() or f"not at {ARD_EXE}")
     mark = ARD / "user" / "libraries" / ".waveshare-commit"
@@ -278,6 +291,19 @@ def cmd_fw_flash(a):
     arduino_cli("upload", "--fqbn", FQBN, "-p", port, REPO / "firmware" / "mic_display")
 
 
+def cmd_app(a):
+    if not WIN:
+        sys.exit("The PC app is Windows-only (Windows Core Audio). On a Mac use the companion page: md companion")
+    script = REPO / "pcapp" / "mic_display_app.py"
+    if "--console" in a:
+        sys.exit(subprocess.run([sys.executable, "-I", str(script), *a]).returncode)
+    pyw = Path(sys.executable).with_name("pythonw.exe")
+    flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW
+    p = subprocess.Popen([str(pyw), "-I", str(script), *a], creationflags=flags, close_fds=True,
+                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    print(f"PC app started (process {p.pid}): its icon is in the notification area; log: {HOME / 'pc-app.log'}")
+
+
 def cmd_companion(_):
     import functools
     import http.server
@@ -300,6 +326,7 @@ COMMANDS = {
     "fw-ports": cmd_fw_ports,
     "fw-flash": cmd_fw_flash,
     "companion": cmd_companion,
+    "app": cmd_app,
     "previews": lambda a: py_script("firmware/tools/previews.py", *a),
 }
 

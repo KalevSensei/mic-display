@@ -4,6 +4,8 @@
 # Builds, outside the repo in ~/.mic-display (override with MD_HOME):
 #   Python 3.12 venv with the pinned CAD packages, arduino-cli + esp32 core + Waveshare's libraries,
 #   PrusaSlicer 2.9.7 (copied from the official .dmg). Installs the repo's git hooks. Ends with `md doctor`.
+# The PC app (pcapp/, env/requirements-app.txt) is Windows-only and is not installed here; on a Mac the companion
+# page (md companion) drives the display.
 set -e
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 MD_HOME="${MD_HOME:-$HOME/.mic-display}"; export MD_HOME

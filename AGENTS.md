@@ -8,6 +8,7 @@ This file is the single entry point for people and agents (Codex reads `AGENTS.m
 - **"3D print it" / "find the print file and settings"**: `cad/print/README.md`. At JHC (Prusa MK4S, HF 0.4 nozzle) print `cad/print/MD_plate_display_and_arm_clamp_MK4S_HF04_PETG.bgcode` as is (all 5 parts, PETG, 1 h 55 min, 54.9 g). Any other printer: `cad/print/MD_plate_display_and_arm_clamp.3mf` with PETG, 0.20 mm layers, 2 walls, 15 % infill, no supports. Hardware to buy afterwards: `docs/PARTS.md`.
 - **"Flash the display"**: plan M03 in `docs/PLAN.md`; `md fw-flash`.
 - **"Run the companion page"**: `md companion`, then Chrome or Edge.
+- **"Run the PC app" / "the display says Needs the PC app"**: `md app` (Windows; tray icon, no window; close the companion page first, only one can hold the port). How to run and what was checked: plan M03c in `docs/PLAN.md`.
 - **"Fit the clamp on Eino's arm"**: plan M06 "Steps" in `docs/PLAN.md`, drawings in `cad/drawings/`.
 
 ## Who is who
@@ -31,9 +32,10 @@ When the two disagree on something on Eino's arm, Eino's call stands. Agents act
 - Clamp A10–A12 for Eino's arm: designed and checked in CAD, 31 fit checks pass (`cad/checks/arm_adapter_fit_check.json`, plan M06). Not printed, not fitted.
 - Print: booked at JHC, **Thu 19 Nov 2026 10:00–17:00, 3D printer 2** (extended from 14:00 on 19 Nov) (Prusa MK4S, HF 0.4 nozzle), file `cad/print/MD_plate_display_and_arm_clamp_MK4S_HF04_PETG.bgcode` (1 h 55 min, 54.9 g PETG).
 - Board (Waveshare ESP32-S3-Touch-AMOLED-1.75): arrived 17 Nov 2026; flashed 18 Nov with firmware 0.2.0; the needle dial follows the live mic on the glass (Kalev: "the metre was already working quite well"). Touch (M03b) and the companion page in Chrome are tested next. Firmware 0.3.0 (2026-11-19, Kalev: "make the ui cleaner call it apple style ... make kmore responsive also make faces"): Apple-style redesign, eight faces, faster frame pipeline with a `C,perf` speed line; flashed 19 Nov, measured 51–59 fps on the board (0.2.0: max 25); touch and swipe feel still to check with Kalev (plan M03b, "Steps on the board").
+- Windows PC app (MD-002, 2026-11-19, Kalev after opening the settings on 0.3.0: "yea fine but it says need an app"): built in `pcapp/`, started with `md app`; firmware 0.3.1 (adds the `C,pc` check line) flashed to the board; on Kalev's laptop all six PC settings are live on the display and follow Windows (22/22 end-to-end checks, board-side taps simulated over the protocol, audio settings restored). Still to see: Kalev tapping them on the glass, a second output device, a restart with Start with Windows on (plan M03c). One-file installer for Eino's PC: MD-005.
 - Printing: everything to print and how is in `cad/print/README.md` (Kalev, 2026-11-18: so Eino can print it too).
 - Hardware (`docs/PARTS.md` > Shopping list: 6 × M2×6 for the display, M4 set screws/nuts and the M5 hinge set for the clamp): not bought yet. Eino, 2026-11-18: buy it as designed, no redesign for other screws. Display on the right of Eino's arm (Eino, 2026-11-19: "on the right side"; MD-004 resolved), so the JHC plate file is the right one.
-- Next: flash and test on the desk (M03/M03b), print (M05), buy hardware and fit on Eino's arm (M06), Windows PC app (MD-002), hand-over (M07).
+- Next: touch test on the desk with the PC app (M03b, M03c step 3), print (M05), buy hardware and fit on Eino's arm (M06), PC app installer (MD-005), hand-over (M07).
 
 ## Environment (Windows and macOS, always current)
 Everything is pinned in `env/`; one setup script per OS builds it all outside the repo (in `%LOCALAPPDATA%\mic-display` or `~/.mic-display`; set `MD_HOME` to move it), so a repo inside OneDrive or iCloud never syncs gigabytes of tools.
@@ -46,12 +48,13 @@ Everything is pinned in `env/`; one setup script per OS builds it all outside th
 | Slicer | PrusaSlicer 2.9.7; the flattened profile `cad/slicing/mk4s_hf04_petg_SPEED.ini` (Original Prusa MK4S HF0.4 + 0.20mm SPEED @MK4S HF0.4 + Prusament PETG @HF0.4, resolved from Prusa's vendor bundle by `cad/slicing/flatten_profile.py`) | `env/pins.json`, `cad/slicing/` |
 | Previews | Pillow + ziglang 0.17.1 (C++ compiler for `firmware/tools/previews.py`); fonts: Inter 4.1 TTFs (OFL) committed in `firmware/tools/fonts/` | `env/requirements-cad.txt` |
 | Companion page | `companion/index.html`, nothing to install; Chrome or Edge (Web Serial + microphone) | – |
+| PC app (Windows only) | pyserial 3.5, sounddevice 0.5.6, comtypes 1.5.0, pystray 0.19.5 (+ numpy, scipy, Pillow from the CAD set), in the same project venv; not installed on macOS | `env/requirements-app.txt`, `env/constraints-app.txt`, `env/pins.json` |
 
 Setup (first time, and again whenever `env/` or the setup scripts change; the git hook says so after a pull):
 - Windows: `powershell -ExecutionPolicy Bypass -File scripts\setup-windows.ps1`
 - macOS: `sh scripts/setup-macos.sh`
 
-It installs Python 3.12 if missing (winget / Homebrew), the venv, arduino-cli with the core and libraries, PrusaSlicer, and the git hooks, then runs `doctor`.
+It installs Python 3.12 if missing (winget / Homebrew), the venv (on Windows with the PC app's packages too), arduino-cli with the core and libraries, PrusaSlicer, and the git hooks, then runs `doctor`.
 
 Every task after that is one command (`scripts\md.ps1 <cmd>` on Windows, `scripts/md.sh <cmd>` on macOS):
 | Command | Does |
@@ -63,6 +66,7 @@ Every task after that is one command (`scripts\md.ps1 <cmd>` on Windows, `script
 | `fw-build`, `fw-ports`, `fw-flash [PORT]` | compiles; lists ports; compiles and uploads (finds the board's port by itself) |
 | `companion` | serves the companion page at http://127.0.0.1:8765 |
 | `previews` | re-renders `docs/previews/settings/` from `firmware/mic_display/ui.h` |
+| `app [--console]` | Windows only: starts the PC app in the notification area (`--console`: in the terminal with a log) |
 
 Files that stay out of git and how to get them:
 - Waveshare's board model `cad/reference/ESP32-S3-Touch-AMOLED-1_75.stp` (18.7 MB, needed by `cad`): download link in `cad/reference/README.md`.

@@ -1,0 +1,10 @@
+# Windows PC app (pcapp/), Windows only: installed into the same project venv by scripts/setup-windows.ps1 with
+#   pip install -r env/requirements-app.txt -c env/constraints-app.txt -c env/constraints-cad.txt
+# numpy, scipy and pillow come pinned from the CAD set (constraints-cad.txt); constraints-app.txt pins the rest.
+pyserial==3.5
+sounddevice==0.5.6
+comtypes==1.5.0
+pystray==0.19.5
+numpy==2.5.4
+scipy==1.18.1
+pillow==13.0.0

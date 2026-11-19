@@ -1,0 +1,10 @@
+cffi==2.1.1
+comtypes==1.5.0
+numpy==2.5.4
+pillow==13.0.0
+pycparser==3.12
+pyserial==3.5
+pystray==0.19.5
+scipy==1.18.1
+six==1.17.0
+sounddevice==0.5.6
