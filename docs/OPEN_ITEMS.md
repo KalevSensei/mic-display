@@ -28,14 +28,10 @@ Append-only. Items move to "Resolved" and never disappear. Codes: MD-nnn.
 - what: one Windows installer or single .exe of `pcapp/` (Python, numpy, scipy, sounddevice, comtypes, pystray bundled), per-user, no admin, with Start with Windows on by default.
 - done when: on a Windows PC without the repo, one download and one double-click start the app, and the display shows the level and all six PC settings live.
 
-### MD-006 · Custom LED strip across the back, run by the display (final version)
-- owner: US
-- status: open 2026-11-20. Owner: "In the final version i want a custom led strip running across the back too. Fully custom & controlled by the display too".
-- reading taken: "the back" = the back of the display unit, a light that glows behind the screen. "Fully custom" = every LED's colour, brightness and effect can be set, and the strip itself is made for this housing. "Controlled by the display" = the board drives the strip from its own pins and the display's settings app sets it (colour, brightness, effect, reacting to the mic level, off). Kalev corrects this if he meant another place.
-- to settle in design: which board pins are free and reachable with Waveshare's case kept whole (D03), the 5 V current the strip may draw from the USB port, the LED type and count, how the light is diffused, where the strip and its cable sit in the housing, and the firmware, protocol and PC app changes.
-- done when: on the final housing the strip lights across the back, and the display's settings app changes its colour, brightness and effect live.
-
 ## Resolved
+
+### MD-006 · Custom LED strip across the back (withdrawn)
+- status: withdrawn 2026-11-20: the request belonged to another project (misrouted by the lead chat); nothing built.
 
 ### MD-002 · Windows PC app (makes the PC settings on the display live)
 - owner: US

@@ -204,11 +204,6 @@ Starting state recorded first: default playback Speakers (Realtek(R) Audio) at 7
 2. Clip it on, plug in USB, open the companion page in Chrome/Edge and connect once.
 3. The companion page gets a hosted address before hand-over, so his PC needs nothing installed: he opens a link.
 
-## M08 · Final version: custom LED strip across the back, run by the display (MD-006)
-- status: requested 2026-11-20; design next, in the mic-display chat.
-- owner (2026-11-20): "In the final version i want a custom led strip running across the back too. Fully custom & controlled by the display too"
-- what: individually controllable LEDs across the back of the display unit, made for this housing and driven by the board; the display's settings app sets colour, brightness, effect (including reacting to the mic) and off. Open points and the done condition: docs/OPEN_ITEMS.md MD-006.
-
 ## Not yet verified
 - Touch (M03b), only checkable on the real board: that the touch points land where the finger is (Waveshare's X and Y mirroring is used as in their LVGL demo); that a finger held still keeps reporting (the firmware treats 120 ms without a report as "finger lifted"; a controller that stops reporting a still finger would end a ring drag early); that taps on the mic arm stay few and quiet enough; that the swipe distances (70 px sideways, 90 px down) and the 30 px tap limit feel right; that brightness 10 % is still readable; screen sleep and wake.
 - The clip ring now sits at radius 207–212 px (page r 107.75), inside the shell's 424 px window; before M03b it was at 219–231 px, under the shell lip and invisible once mounted. The device name under the dial is cut with "..." at 190 px so it stays clear of the clip ring.
