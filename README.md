@@ -38,3 +38,6 @@ Set up by hand instead: Windows `powershell -ExecutionPolicy Bypass -File script
 - `docs/OPEN_ITEMS.md`: parked and open items (MD-005: a one-file installer for the PC app).
 - `docs/PARTS.md`: what to buy (one Electrokit order) and what comes from JHC.
 - `docs/WIRING.md`: every wire, pin by pin (basic build; the upgraded board needs none).
+
+## Licence and authorship
+Public so course staff can read it and check who wrote what and when; the git history (every commit dated and signed by its author's GitHub account) is the record. Not open source: all rights reserved, see `LICENSE`. Third-party pieces and their licences: `NOTICE.md`.

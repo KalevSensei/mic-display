@@ -1,0 +1,19 @@
+mic-display
+Copyright (c) 2026 Kalev Soininen and Eino Laakso. All rights reserved.
+
+This repository is published so that anyone, in particular the course staff
+assessing it, can read the source code, CAD, drawings and documents and check
+who wrote them and when (the full git history is the record of authorship).
+
+It is NOT open source. No licence is granted to copy, modify, distribute,
+sublicense, sell, manufacture or otherwise use any part of this repository,
+in whole or in part, without the prior written permission of the copyright
+holders. Reading the files on GitHub, and cloning the repository solely to
+read, build or run it for the purpose of assessing the project, is permitted.
+
+Third-party material included in this repository stays under its own licence
+and is listed in NOTICE.md; nothing in this file changes those licences.
+
+THE CONTENTS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY ARISING FROM THE USE OF THESE CONTENTS.
